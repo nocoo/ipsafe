@@ -1,0 +1,30 @@
+{
+  "name": "ipsafe",
+  "version": "1.0.0",
+  "description": "A CLI tool that validates network connectivity before executing commands",
+  "main": "index.js",
+  "bin": {
+    "ipsafe": "./bin/ipsafe.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint bin/ lib/ __tests__/",
+    "lint:fix": "eslint bin/ lib/ __tests__/ --fix",
+    "verify": "npm run lint && npm test",
+    "prepublishOnly": "npm run verify"
+  },
+  "keywords": [
+    "cli",
+    "network",
+    "connectivity",
+    "safe",
+    "command"
+  ],
+  "author": "nocoo",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "eslint": "^9.29.0",
+    "jest": "^29.7.0"
+  }
+}
