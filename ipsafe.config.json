@@ -1,5 +1,12 @@
 {
   "testUrl": "https://www.google.com",
-  "timeout": 5000,
-  "retries": 1
+  "timeout": 3000,
+  "retries": 1,
+  "checkContent": false,
+  "searchText": null,
+  "searchType": "contains",
+  "responseType": "auto",
+  "followRedirects": true,
+  "maxRedirects": 5,
+  "headers": {}
 }

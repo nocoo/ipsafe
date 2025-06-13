@@ -33,8 +33,15 @@ describe('IpSafe', () => {
       
       expect(config).toEqual({
         testUrl: 'https://www.google.com',
-        timeout: 5000,
-        retries: 1
+        timeout: 3000,
+        retries: 1,
+        checkContent: false,
+        searchText: null,
+        searchType: 'contains',
+        responseType: 'auto',
+        followRedirects: true,
+        maxRedirects: 5,
+        headers: {}
       });
     });
 
@@ -52,7 +59,14 @@ describe('IpSafe', () => {
       expect(config).toEqual({
         testUrl: 'https://example.com',
         timeout: 3000,
-        retries: 1
+        retries: 1,
+        checkContent: false,
+        searchText: null,
+        searchType: 'contains',
+        responseType: 'auto',
+        followRedirects: true,
+        maxRedirects: 5,
+        headers: {}
       });
     });
 
@@ -65,8 +79,15 @@ describe('IpSafe', () => {
       
       expect(config).toEqual({
         testUrl: 'https://www.google.com',
-        timeout: 5000,
-        retries: 1
+        timeout: 3000,
+        retries: 1,
+        checkContent: false,
+        searchText: null,
+        searchType: 'contains',
+        responseType: 'auto',
+        followRedirects: true,
+        maxRedirects: 5,
+        headers: {}
       });
       expect(consoleSpy).toHaveBeenCalledWith('Warning: Failed to load config file, using defaults');
       
@@ -78,12 +99,19 @@ describe('IpSafe', () => {
     it('should resolve true for successful HTTP request', async () => {
       const mockRequest = {
         on: jest.fn(),
-        end: jest.fn()
+        end: jest.fn(),
+        destroy: jest.fn()
       };
       
       const mockResponse = {
         statusCode: 200,
-        statusMessage: 'OK'
+        statusMessage: 'OK',
+        headers: {},
+        on: jest.fn((event, callback) => {
+          if (event === 'end') {
+            setTimeout(callback, 10);
+          }
+        })
       };
 
       const https = require('https');
@@ -92,7 +120,7 @@ describe('IpSafe', () => {
         return mockRequest;
       });
 
-      const config = { testUrl: 'https://www.google.com', timeout: 5000 };
+      const config = { testUrl: 'https://www.google.com', timeout: 3000 };
       
       const result = await ipSafe.testConnectivity(config);
       
@@ -103,12 +131,19 @@ describe('IpSafe', () => {
     it('should reject for HTTP error status', async () => {
       const mockRequest = {
         on: jest.fn(),
-        end: jest.fn()
+        end: jest.fn(),
+        destroy: jest.fn()
       };
       
       const mockResponse = {
         statusCode: 500,
-        statusMessage: 'Internal Server Error'
+        statusMessage: 'Internal Server Error',
+        headers: {},
+        on: jest.fn((event, callback) => {
+          if (event === 'end') {
+            setTimeout(callback, 10);
+          }
+        })
       };
 
       const https = require('https');
@@ -117,7 +152,7 @@ describe('IpSafe', () => {
         return mockRequest;
       });
 
-      const config = { testUrl: 'https://www.google.com', timeout: 5000 };
+      const config = { testUrl: 'https://www.google.com', timeout: 3000 };
       
       await expect(ipSafe.testConnectivity(config)).rejects.toThrow('HTTP 500: Internal Server Error');
     });

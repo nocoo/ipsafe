@@ -1,13 +1,13 @@
 # 🛡️ ipsafe
 
-> A CLI tool that validates network connectivity before executing commands
+> A CLI tool that validates network connectivity and content before executing commands
 
 [![npm version](https://badge.fury.io/js/ipsafe.svg)](https://badge.fury.io/js/ipsafe)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🚀 What is ipsafe?
 
-`ipsafe` is a command-line safety net that checks your network connectivity before executing potentially network-dependent commands. It helps prevent failed operations and wasted time by verifying you have a stable internet connection first.
+`ipsafe` is a command-line safety net that checks your network connectivity and optionally validates response content before executing potentially network-dependent commands. It helps prevent failed operations and wasted time by verifying you have a stable internet connection and the expected service responses.
 
 ## 📦 Installation
 
@@ -47,8 +47,15 @@ Create an `ipsafe.config.json` file in your project root to customize the connec
 ```json
 {
   "testUrl": "https://www.google.com",
-  "timeout": 5000,
-  "retries": 1
+  "timeout": 3000,
+  "retries": 1,
+  "checkContent": false,
+  "searchText": null,
+  "searchType": "contains",
+  "responseType": "auto",
+  "followRedirects": true,
+  "maxRedirects": 5,
+  "headers": {}
 }
 ```
 
@@ -57,21 +64,38 @@ Create an `ipsafe.config.json` file in your project root to customize the connec
 | Option | Default | Description |
 |--------|---------|-------------|
 | `testUrl` | `https://www.google.com` | URL to test connectivity against |
-| `timeout` | `5000` | Request timeout in milliseconds |
+| `timeout` | `3000` | Request timeout in milliseconds |
 | `retries` | `1` | Number of retry attempts |
+| `checkContent` | `false` | Enable content validation |
+| `searchText` | `null` | Text/pattern to search for in response |
+| `searchType` | `contains` | Search method: `contains` or `regex` |
+| `responseType` | `auto` | Response type: `auto`, `html`, or `json` |
+| `followRedirects` | `true` | Follow HTTP redirects |
+| `maxRedirects` | `5` | Maximum redirects to follow |
+| `headers` | `{}` | Custom HTTP headers |
 
-## 🔧 Connectivity Rules
+## 🔧 Connectivity and Validation Rules
 
-The tool considers connectivity **successful** when:
+The tool considers validation **successful** when:
 - ✅ The test URL responds with HTTP status 200-399
 - ✅ Response is received within the timeout period
 - ✅ No network errors occur
+- ✅ Content validation passes (if enabled)
 
-The tool considers connectivity **failed** when:
+The tool considers validation **failed** when:
 - ❌ HTTP status 400+ is received
 - ❌ Request times out
 - ❌ Network errors (DNS resolution, connection refused, etc.)
+- ❌ Content validation fails (if enabled)
 - ❌ All retry attempts are exhausted
+
+### Content Validation
+
+When `checkContent` is enabled, the tool will:
+- Download the response content
+- Apply the specified search method (`contains` or `regex`)
+- Validate the `searchText` exists in the response
+- Support both HTML and JSON response types
 
 ## 🛠️ Development
 
@@ -115,9 +139,53 @@ npm test
 
 Coverage report is generated in the `coverage/` directory.
 
+## 🌟 Advanced Usage Examples
+
+### Basic Connectivity Check
+```json
+{
+  "testUrl": "https://www.google.com",
+  "timeout": 3000
+}
+```
+
+### API Health Check with JSON Content Validation
+```json
+{
+  "testUrl": "https://api.github.com/status",
+  "checkContent": true,
+  "searchText": "good",
+  "searchType": "contains",
+  "responseType": "json"
+}
+```
+
+### Website Content Validation with Regex
+```json
+{
+  "testUrl": "https://example.com",
+  "checkContent": true,
+  "searchText": "Welcome.*Home",
+  "searchType": "regex",
+  "responseType": "html"
+}
+```
+
+### Custom Headers and Authentication
+```json
+{
+  "testUrl": "https://api.private.com/health",
+  "headers": {
+    "Authorization": "Bearer your-token",
+    "Accept": "application/json"
+  },
+  "checkContent": true,
+  "searchText": "healthy"
+}
+```
+
 ## 📝 Future Enhancements
 
-- 🔍 API response validation (check specific parameters in response)
 - 🌐 Multiple test endpoints
 - 📊 Connection quality metrics
 - 🔄 Automatic retry with exponential backoff
@@ -145,5 +213,7 @@ Have you ever started a long-running `npm install` only to realize you're offlin
 Perfect for:
 - 🏠 Remote work with unstable connections
 - ✈️ Working while traveling
-- 🔄 CI/CD pipelines that need network validation
+- 🔄 CI/CD pipelines that need network and service validation
 - 🛡️ Any script that depends on internet connectivity
+- 🏥 Health checks for APIs and services
+- 🔍 Content validation for web scraping scripts

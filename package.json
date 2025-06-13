@@ -1,6 +1,6 @@
 {
   "name": "ipsafe",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A CLI tool that validates network connectivity before executing commands",
   "main": "index.js",
   "bin": {
