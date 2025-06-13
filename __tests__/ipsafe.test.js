@@ -126,8 +126,17 @@ describe('IpSafe', () => {
   describe('executeCommand', () => {
     it('should execute command successfully', async () => {
       const { exec } = require('child_process');
-      exec.mockImplementation((command, callback) => {
-        callback(null, 'command output', '');
+      const mockChild = { 
+        once: jest.fn(),
+        kill: jest.fn()
+      };
+      exec.mockImplementation((command, options, callback) => {
+        // Handle both old and new signatures
+        if (typeof options === 'function') {
+          callback = options;
+        }
+        setTimeout(() => callback(null, 'command output', ''), 10);
+        return mockChild;
       });
 
       const result = await ipSafe.executeCommand('echo hello');
@@ -140,9 +149,18 @@ describe('IpSafe', () => {
 
     it('should reject on command error', async () => {
       const { exec } = require('child_process');
+      const mockChild = { 
+        once: jest.fn(),
+        kill: jest.fn()
+      };
       const error = new Error('Command failed');
-      exec.mockImplementation((command, callback) => {
-        callback(error, '', '');
+      exec.mockImplementation((command, options, callback) => {
+        // Handle both old and new signatures
+        if (typeof options === 'function') {
+          callback = options;
+        }
+        setTimeout(() => callback(error, '', ''), 10);
+        return mockChild;
       });
 
       await expect(ipSafe.executeCommand('invalid command')).rejects.toThrow('Command failed');

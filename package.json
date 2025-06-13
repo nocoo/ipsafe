@@ -4,7 +4,7 @@
   "description": "A CLI tool that validates network connectivity before executing commands",
   "main": "index.js",
   "bin": {
-    "ipsafe": "./bin/ipsafe.js"
+    "ipsafe": "bin/ipsafe.js"
   },
   "scripts": {
     "test": "jest",
