@@ -35,12 +35,11 @@ describe('IpSafe', () => {
         testUrl: 'https://www.google.com',
         timeout: 3000,
         retries: 1,
+        method: 'GET',
+        userAgent: 'ipsafe/1.0.2',
         checkContent: false,
         searchText: null,
         searchType: 'contains',
-        responseType: 'auto',
-        followRedirects: true,
-        maxRedirects: 5,
         headers: {}
       });
     });
@@ -60,12 +59,11 @@ describe('IpSafe', () => {
         testUrl: 'https://example.com',
         timeout: 3000,
         retries: 1,
+        method: 'GET',
+        userAgent: 'ipsafe/1.0.2',
         checkContent: false,
         searchText: null,
         searchType: 'contains',
-        responseType: 'auto',
-        followRedirects: true,
-        maxRedirects: 5,
         headers: {}
       });
     });
@@ -81,12 +79,11 @@ describe('IpSafe', () => {
         testUrl: 'https://www.google.com',
         timeout: 3000,
         retries: 1,
+        method: 'GET',
+        userAgent: 'ipsafe/1.0.2',
         checkContent: false,
         searchText: null,
         searchType: 'contains',
-        responseType: 'auto',
-        followRedirects: true,
-        maxRedirects: 5,
         headers: {}
       });
       expect(consoleSpy).toHaveBeenCalledWith('Warning: Failed to load config file, using defaults');
@@ -100,7 +97,8 @@ describe('IpSafe', () => {
       const mockRequest = {
         on: jest.fn(),
         end: jest.fn(),
-        destroy: jest.fn()
+        destroy: jest.fn(),
+        setTimeout: jest.fn()
       };
       
       const mockResponse = {
@@ -132,7 +130,8 @@ describe('IpSafe', () => {
       const mockRequest = {
         on: jest.fn(),
         end: jest.fn(),
-        destroy: jest.fn()
+        destroy: jest.fn(),
+        setTimeout: jest.fn()
       };
       
       const mockResponse = {

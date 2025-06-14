@@ -1,13 +1,15 @@
 # 🛡️ ipsafe
 
-> A CLI tool that validates network connectivity and content before executing commands
+> A simple CLI tool that validates network connectivity before executing commands
 
 [![npm version](https://badge.fury.io/js/ipsafe.svg)](https://badge.fury.io/js/ipsafe)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 🚀 What is ipsafe?
 
-`ipsafe` is a command-line safety net that checks your network connectivity and optionally validates response content before executing potentially network-dependent commands. It helps prevent failed operations and wasted time by verifying you have a stable internet connection and the expected service responses.
+`ipsafe` is a command-line tool that checks a network condition before executing any command. If the condition passes, it executes the command. If the condition fails, it blocks execution.
+
+**Default behavior**: Fetches `https://www.google.com` and checks if the HTTP status code is 2xx.
 
 ## 📦 Installation
 
@@ -23,7 +25,7 @@ Simply prefix any command with `ipsafe`:
 # Check connectivity before npm install
 ipsafe "npm install"
 
-# Verify connection before git operations
+# Verify connection before git operations  
 ipsafe "git push origin main"
 
 # Safe API calls
@@ -49,12 +51,11 @@ Create an `ipsafe.config.json` file in your project root to customize the connec
   "testUrl": "https://www.google.com",
   "timeout": 3000,
   "retries": 1,
+  "method": "GET",
+  "userAgent": "ipsafe/1.0.2",
   "checkContent": false,
   "searchText": null,
   "searchType": "contains",
-  "responseType": "auto",
-  "followRedirects": true,
-  "maxRedirects": 5,
   "headers": {}
 }
 ```
@@ -66,108 +67,57 @@ Create an `ipsafe.config.json` file in your project root to customize the connec
 | `testUrl` | `https://www.google.com` | URL to test connectivity against |
 | `timeout` | `3000` | Request timeout in milliseconds |
 | `retries` | `1` | Number of retry attempts |
+| `method` | `GET` | HTTP method to use |
+| `userAgent` | `ipsafe/1.0.2` | User-Agent header |
 | `checkContent` | `false` | Enable content validation |
 | `searchText` | `null` | Text/pattern to search for in response |
 | `searchType` | `contains` | Search method: `contains` or `regex` |
-| `responseType` | `auto` | Response type: `auto`, `html`, or `json` |
-| `followRedirects` | `true` | Follow HTTP redirects |
-| `maxRedirects` | `5` | Maximum redirects to follow |
 | `headers` | `{}` | Custom HTTP headers |
 
-## 🔧 Connectivity and Validation Rules
+## 🔧 How it Works
 
-The tool considers validation **successful** when:
-- ✅ The test URL responds with HTTP status 200-399
-- ✅ Response is received within the timeout period
-- ✅ No network errors occur
-- ✅ Content validation passes (if enabled)
+1. **Condition Check**: Makes HTTP request to configured URL
+2. **Status Validation**: Verifies HTTP status code is 2xx (200-299)
+3. **Content Validation** (optional): Searches for specific text/pattern in response
+4. **Command Execution**: If all checks pass, executes the provided command
+5. **Blocking**: If any check fails, blocks command execution
 
-The tool considers validation **failed** when:
-- ❌ HTTP status 400+ is received
-- ❌ Request times out
-- ❌ Network errors (DNS resolution, connection refused, etc.)
-- ❌ Content validation fails (if enabled)
-- ❌ All retry attempts are exhausted
+## 📝 Examples
 
-### Content Validation
-
-When `checkContent` is enabled, the tool will:
-- Download the response content
-- Apply the specified search method (`contains` or `regex`)
-- Validate the `searchText` exists in the response
-- Support both HTML and JSON response types
-
-## 🛠️ Development
-
-### Prerequisites
-- Node.js >= 14.0.0
-
-### Setup
+### Basic Usage (Default Google Check)
 ```bash
-git clone <repository-url>
-cd ipsafe
-npm install
+# Uses default https://www.google.com check
+ipsafe "npm install express"
 ```
 
-### Scripts
-```bash
-npm test          # Run unit tests
-npm run lint      # Run ESLint
-npm run lint:fix  # Fix linting issues
-```
-
-### Project Structure
-```
-ipsafe/
-├── bin/
-│   └── ipsafe.js       # CLI entry point
-├── lib/
-│   └── ipsafe.js       # Core logic
-├── __tests__/
-│   └── ipsafe.test.js  # Unit tests
-├── ipsafe.config.json  # Default configuration
-└── package.json
-```
-
-## 🧪 Testing
-
-The project includes comprehensive unit tests using Jest:
-
-```bash
-npm test
-```
-
-Coverage report is generated in the `coverage/` directory.
-
-## 🌟 Advanced Usage Examples
-
-### Basic Connectivity Check
+### Custom URL Check
 ```json
 {
-  "testUrl": "https://www.google.com",
-  "timeout": 3000
+  "testUrl": "https://api.github.com"
 }
 ```
 
-### API Health Check with JSON Content Validation
+### IP Location Service Example
 ```json
 {
-  "testUrl": "https://api.github.com/status",
+  "testUrl": "https://iplocate.io/api/lookup",
+  "method": "GET",
   "checkContent": true,
-  "searchText": "good",
+  "searchText": "ip",
   "searchType": "contains",
-  "responseType": "json"
+  "headers": {
+    "Accept": "application/json"
+  }
 }
 ```
 
-### Website Content Validation with Regex
+### Content Validation with Regex
 ```json
 {
-  "testUrl": "https://example.com",
+  "testUrl": "https://httpbin.org/json",
   "checkContent": true,
-  "searchText": "Welcome.*Home",
-  "searchType": "regex",
-  "responseType": "html"
+  "searchText": "\"slideshow\".*\"title\"",
+  "searchType": "regex"
 }
 ```
 
@@ -176,7 +126,7 @@ Coverage report is generated in the `coverage/` directory.
 {
   "testUrl": "https://api.private.com/health",
   "headers": {
-    "Authorization": "Bearer your-token",
+    "Authorization": "Bearer your-api-key",
     "Accept": "application/json"
   },
   "checkContent": true,
@@ -184,23 +134,32 @@ Coverage report is generated in the `coverage/` directory.
 }
 ```
 
-## 📝 Future Enhancements
+## ✅ Success Conditions
 
-- 🌐 Multiple test endpoints
-- 📊 Connection quality metrics
-- 🔄 Automatic retry with exponential backoff
-- 📱 Different validation strategies per command type
+The tool considers the condition **successful** when:
+- HTTP status code is 2xx (200-299)
+- Response is received within timeout period
+- No network errors occur
+- Content validation passes (if enabled)
 
-## 🤝 Contributing
+## ❌ Failure Conditions
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes
-4. Run tests: `npm test`
-5. Run linter: `npm run lint`
-6. Commit changes: `git commit -am 'Add feature'`
-7. Push to branch: `git push origin feature-name`
-8. Submit a pull request
+The tool considers the condition **failed** when:
+- HTTP status code is not 2xx
+- Request times out
+- Network errors (DNS resolution, connection refused, etc.)
+- Content validation fails (if enabled)
+- All retry attempts are exhausted
+
+## 🛠️ Development
+
+```bash
+git clone <repository-url>
+cd ipsafe
+npm install
+npm test          # Run tests
+npm run lint      # Run linter
+```
 
 ## 📄 License
 
@@ -208,12 +167,10 @@ MIT © [nocoo](https://github.com/nocoo)
 
 ## 💡 Why ipsafe?
 
-Have you ever started a long-running `npm install` only to realize you're offline? Or initiated a `git push` that hangs because of network issues? `ipsafe` solves these frustrations by providing a quick connectivity check before executing your commands.
+Have you ever started a long-running command only to realize you're offline? `ipsafe` prevents this frustration by checking connectivity first.
 
 Perfect for:
 - 🏠 Remote work with unstable connections
-- ✈️ Working while traveling
-- 🔄 CI/CD pipelines that need network and service validation
+- ✈️ Working while traveling  
+- 🔄 CI/CD pipelines requiring network validation
 - 🛡️ Any script that depends on internet connectivity
-- 🏥 Health checks for APIs and services
-- 🔍 Content validation for web scraping scripts
