@@ -15,13 +15,13 @@ describe('IpSafe', () => {
   });
 
   describe('constructor', () => {
-    it('should initialize with default config path', () => {
+    it('should initialize with default config paths', () => {
       const defaultIpSafe = new IpSafe();
-      expect(defaultIpSafe.configFile).toBe(path.join(process.cwd(), 'ipsafe.config.json'));
+      expect(defaultIpSafe.configPaths).toContain(path.join(process.cwd(), 'ipsafe.config.json'));
     });
 
     it('should initialize with custom config path', () => {
-      expect(ipSafe.configFile).toBe(mockConfigPath);
+      expect(ipSafe.configPaths).toEqual([mockConfigPath]);
     });
   });
 
@@ -40,7 +40,8 @@ describe('IpSafe', () => {
         checkContent: false,
         searchText: null,
         searchType: 'contains',
-        headers: {}
+        headers: {},
+        commandTimeout: 0
       });
     });
 
@@ -64,7 +65,8 @@ describe('IpSafe', () => {
         checkContent: false,
         searchText: null,
         searchType: 'contains',
-        headers: {}
+        headers: {},
+        commandTimeout: 0
       });
     });
 
@@ -84,9 +86,10 @@ describe('IpSafe', () => {
         checkContent: false,
         searchText: null,
         searchType: 'contains',
-        headers: {}
+        headers: {},
+        commandTimeout: 0
       });
-      expect(consoleSpy).toHaveBeenCalledWith('Warning: Failed to load config file, using defaults');
+      expect(consoleSpy).toHaveBeenCalledWith('⚠️  Warning: Failed to load config from /test/config.json: Unexpected token \'i\', "invalid json" is not valid JSON');
       
       consoleSpy.mockRestore();
     });
@@ -159,17 +162,26 @@ describe('IpSafe', () => {
 
   describe('executeCommand', () => {
     it('should execute command successfully', async () => {
-      const { exec } = require('child_process');
-      const mockChild = { 
-        once: jest.fn(),
+      const { spawn } = require('child_process');
+      const mockChild = {
+        stdout: { on: jest.fn() },
+        stderr: { on: jest.fn() },
+        on: jest.fn(),
         kill: jest.fn()
       };
-      exec.mockImplementation((command, options, callback) => {
-        // Handle both old and new signatures
-        if (typeof options === 'function') {
-          callback = options;
-        }
-        setTimeout(() => callback(null, 'command output', ''), 10);
+
+      spawn.mockImplementation(() => {
+        // Simulate successful command execution
+        setTimeout(() => {
+          // Simulate stdout data
+          const stdoutCallback = mockChild.stdout.on.mock.calls.find(call => call[0] === 'data')?.[1];
+          if (stdoutCallback) stdoutCallback(Buffer.from('command output\n'));
+          
+          // Simulate close event with success
+          const closeCallback = mockChild.on.mock.calls.find(call => call[0] === 'close')?.[1];
+          if (closeCallback) closeCallback(0);
+        }, 10);
+        
         return mockChild;
       });
 
@@ -177,27 +189,32 @@ describe('IpSafe', () => {
       
       expect(result).toEqual({
         stdout: 'command output',
-        stderr: ''
+        stderr: '',
+        exitCode: 0
       });
+      expect(spawn).toHaveBeenCalledWith('echo', ['hello'], { stdio: ['inherit', 'pipe', 'pipe'] });
     });
 
     it('should reject on command error', async () => {
-      const { exec } = require('child_process');
-      const mockChild = { 
-        once: jest.fn(),
+      const { spawn } = require('child_process');
+      const mockChild = {
+        stdout: { on: jest.fn() },
+        stderr: { on: jest.fn() },
+        on: jest.fn(),
         kill: jest.fn()
       };
-      const error = new Error('Command failed');
-      exec.mockImplementation((command, options, callback) => {
-        // Handle both old and new signatures
-        if (typeof options === 'function') {
-          callback = options;
-        }
-        setTimeout(() => callback(error, '', ''), 10);
+
+      spawn.mockImplementation(() => {
+        setTimeout(() => {
+          // Simulate close event with error
+          const closeCallback = mockChild.on.mock.calls.find(call => call[0] === 'close')?.[1];
+          if (closeCallback) closeCallback(1);
+        }, 10);
+        
         return mockChild;
       });
 
-      await expect(ipSafe.executeCommand('invalid command')).rejects.toThrow('Command failed');
+      await expect(ipSafe.executeCommand('invalid command')).rejects.toThrow('Command failed with exit code 1');
     });
   });
 

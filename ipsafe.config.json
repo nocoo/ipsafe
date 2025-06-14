@@ -7,5 +7,6 @@
   "checkContent": false,
   "searchText": null,
   "searchType": "contains",
-  "headers": {}
+  "headers": {},
+  "commandTimeout": 0
 }
