@@ -96,7 +96,7 @@ ipsafe follows standard configuration practices with this search order:
   "timeout": 3000,
   "retries": 1,
   "method": "GET",
-  "userAgent": "ipsafe/1.0.2",
+  "userAgent": "ipsafe/1.0.3",
   "checkContent": false,
   "searchText": null,
   "searchType": "contains",
@@ -121,7 +121,7 @@ ipsafe follows standard configuration practices with this search order:
 | `timeout` | `3000` | Request timeout in milliseconds |
 | `retries` | `1` | Number of retry attempts |
 | `method` | `GET` | HTTP method to use |
-| `userAgent` | `ipsafe/1.0.2` | User-Agent header |
+| `userAgent` | `ipsafe/1.0.3` | User-Agent header |
 | `checkContent` | `false` | Enable content validation |
 | `searchText` | `null` | Text/pattern to search for in response |
 | `searchType` | `contains` | Search method: `contains` or `regex` |
@@ -158,6 +158,19 @@ ipsafe "docker build -t myapp ."
 # Infinite commands (use Ctrl+C to stop)
 ipsafe "ping google.com"
 ipsafe "tail -f /var/log/system.log"
+```
+
+### Interactive Commands
+```bash
+# CLI tools with prompts (using --print for non-interactive)
+ipsafe 'claude --print "What is 2+2?"'
+
+# Piped input works too
+echo "Explain Docker" | ipsafe "claude --print"
+
+# Commands that need full terminal access
+ipsafe "vim myfile.txt"     # Opens vim with full TTY
+ipsafe "htop"               # Interactive process monitor
 ```
 
 ### Custom URL Check

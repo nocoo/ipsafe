@@ -3,7 +3,7 @@
   "timeout": 3000,
   "retries": 1,
   "method": "GET",
-  "userAgent": "ipsafe/1.0.2",
+  "userAgent": "ipsafe/1.0.3",
   "checkContent": false,
   "searchText": null,
   "searchType": "contains",

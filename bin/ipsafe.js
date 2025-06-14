@@ -117,15 +117,27 @@ async function main() {
   console.log(`🔍 ${info('Checking network connectivity to')} ${dim(config.testUrl)}...`);
 
   try {
+    // First, check network connectivity
+    await ipSafe.checkNetworkWithRetries(config);
     console.log(`✅ ${success('Network connectivity verified')}`);
     console.log(`🚀 ${info('Executing:')} ${colorize(command, 'bright')}`);
     console.log(''); // Add blank line before command output
     
-    await ipSafe.run(args);
+    // Then execute the command
+    await ipSafe.executeCommand(command, config);
     console.log(`\n✨ ${success('Command completed successfully')}`);
   } catch (err) {
-    console.error(`❌ ${error('Network connectivity failed:')} ${err.message}`);
-    console.error(`🚫 ${warning('Command not executed for safety')}`);
+    // Check if this is a network connectivity error or command execution error
+    if (err.message.includes('Request timeout') || 
+        err.message.includes('getaddrinfo') || 
+        err.message.includes('HTTP') ||
+        err.message.includes('ENOTFOUND') ||
+        err.message.includes('Content check failed')) {
+      console.error(`❌ ${error('Network connectivity failed:')} ${err.message}`);
+      console.error(`🚫 ${warning('Command not executed for safety')}`);
+    } else {
+      console.error(`❌ ${error('Command execution failed:')} ${err.message}`);
+    }
     process.exit(1);
   }
 }
