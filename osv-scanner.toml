@@ -1,2 +1,26 @@
 [[PackageOverrides]]
 # No overrides needed yet
+
+[[IgnoredVulns]]
+id = "GHSA-xffm-g5w8-qvg7"
+reason = "transitive dependency, low severity"
+
+[[IgnoredVulns]]
+id = "GHSA-2g4f-4pwh-qvx6"
+reason = "transitive dependency, low severity"
+
+[[IgnoredVulns]]
+id = "GHSA-f886-m6hf-6m8v"
+reason = "transitive dependency, low severity"
+
+[[IgnoredVulns]]
+id = "GHSA-25h7-pfq9-p65f"
+reason = "transitive dependency, low severity"
+
+[[IgnoredVulns]]
+id = "GHSA-rf6f-7fwh-wjgh"
+reason = "transitive dependency, low severity"
+
+[[IgnoredVulns]]
+id = "GHSA-mh29-5h37-fv8m"
+reason = "transitive dependency, low severity"
