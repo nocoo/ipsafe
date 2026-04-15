@@ -1,0 +1,9 @@
+title = "gitleaks config for ipsafe"
+
+[allowlist]
+  description = "Global allowlist"
+  paths = [
+    '''node_modules''',
+    '''coverage''',
+    '''package-lock\.json''',
+  ]

@@ -1,0 +1,17 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  quality:
+    uses: nocoo/base-ci/.github/workflows/bun-quality.yml@v2026
+    with:
+      test-command: "npm test"
+      lint-command: "npm run lint"
+      typecheck-command: "true"
+      enable-l2: "false"
+      osv-config: "osv-scanner.toml"
+    secrets: inherit
