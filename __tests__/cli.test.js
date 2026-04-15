@@ -1,13 +1,9 @@
-const IpSafe = require('../lib/ipsafe');
-const fs = require('fs');
-
 jest.mock('fs');
 jest.mock('child_process');
 
 // Capture console output
 let consoleOutput;
 let consoleErrors;
-let processExitCode;
 
 // Save originals
 const originalArgv = process.argv;

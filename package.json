@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "jest",
-    "lint": "eslint bin/ lib/ __tests__/",
-    "lint:fix": "eslint bin/ lib/ __tests__/ --fix",
+    "lint": "eslint --max-warnings=0 bin/ lib/ __tests__/",
+    "lint:fix": "eslint --max-warnings=0 bin/ lib/ __tests__/ --fix",
     "verify": "npm run lint && npm test",
     "prepublishOnly": "npm run verify",
     "prepare": "husky"

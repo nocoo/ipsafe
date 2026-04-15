@@ -183,7 +183,7 @@ describe('IpSafe', () => {
     });
 
     it('should overwrite config when force is true', async () => {
-      fs.existsSync.mockImplementation((p) => {
+      fs.existsSync.mockImplementation(() => {
         // Dir exists, file exists
         return true;
       });
@@ -302,7 +302,7 @@ describe('IpSafe', () => {
     });
 
     it('should handle single-quoted arguments', () => {
-      expect(ipSafe.parseCommand("echo 'hello world'")).toEqual(['echo', 'hello world']);
+      expect(ipSafe.parseCommand('echo \'hello world\'')).toEqual(['echo', 'hello world']);
     });
 
     it('should handle multiple spaces', () => {
