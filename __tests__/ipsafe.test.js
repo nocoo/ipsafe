@@ -1,6 +1,7 @@
 const IpSafe = require('../lib/ipsafe');
 const fs = require('fs');
 const path = require('path');
+const pkg = require('../package.json');
 
 jest.mock('fs');
 jest.mock('child_process');
@@ -36,7 +37,7 @@ describe('IpSafe', () => {
         timeout: 3000,
         retries: 1,
         method: 'GET',
-        userAgent: 'ipsafe/1.0.2',
+        userAgent: `ipsafe/${pkg.version}`,
         checkContent: false,
         searchText: null,
         searchType: 'contains',
@@ -61,7 +62,7 @@ describe('IpSafe', () => {
         timeout: 3000,
         retries: 1,
         method: 'GET',
-        userAgent: 'ipsafe/1.0.2',
+        userAgent: `ipsafe/${pkg.version}`,
         checkContent: false,
         searchText: null,
         searchType: 'contains',
@@ -82,7 +83,7 @@ describe('IpSafe', () => {
         timeout: 3000,
         retries: 1,
         method: 'GET',
-        userAgent: 'ipsafe/1.0.2',
+        userAgent: `ipsafe/${pkg.version}`,
         checkContent: false,
         searchText: null,
         searchType: 'contains',
