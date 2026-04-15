@@ -13,4 +13,5 @@ jobs:
       lint-command: "npm run lint"
       typecheck-command: "true"
       enable-l2: "false"
+      osv-config: "osv-scanner.toml"
     secrets: inherit
