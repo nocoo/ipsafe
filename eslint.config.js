@@ -28,7 +28,7 @@ module.exports = [
     files: ['__tests__/**/*.js'],
     languageOptions: {
       globals: {
-        jest: 'readonly',
+        vi: 'readonly',
         describe: 'readonly',
         it: 'readonly',
         expect: 'readonly',

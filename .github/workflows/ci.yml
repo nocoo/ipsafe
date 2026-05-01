@@ -9,7 +9,7 @@ jobs:
   quality:
     uses: nocoo/base-ci/.github/workflows/bun-quality.yml@v2026.1
     with:
-      test-command: "npm test"
+      test-command: "npm run test:coverage"
       lint-command: "npm run lint"
       typecheck-command: "true"
       enable-l2: "false"
