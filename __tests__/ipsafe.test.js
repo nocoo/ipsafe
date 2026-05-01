@@ -788,4 +788,369 @@ describe('IpSafe', () => {
       expect(execSpy).toHaveBeenCalledWith('npm install --save', expect.any(Object));
     });
   });
+
+  describe('platform-specific config paths', () => {
+    it('should use Windows AppData path on win32', () => {
+      vi.spyOn(os, 'platform').mockReturnValue('win32');
+      const originalAppData = process.env.APPDATA;
+      process.env.APPDATA = 'C:\\Users\\Test\\AppData\\Roaming';
+
+      const winIpSafe = new IpSafe();
+      const expected = path.join('C:\\Users\\Test\\AppData\\Roaming', 'ipsafe', 'config.json');
+      expect(winIpSafe.configPaths).toContainEqual(expected);
+
+      if (originalAppData === undefined) delete process.env.APPDATA;
+      else process.env.APPDATA = originalAppData;
+    });
+
+    it('should fall back to default AppData path when env var not set', () => {
+      vi.spyOn(os, 'platform').mockReturnValue('win32');
+      const originalAppData = process.env.APPDATA;
+      delete process.env.APPDATA;
+
+      const winIpSafe = new IpSafe();
+      const expected = path.join(os.homedir(), 'AppData', 'Roaming', 'ipsafe', 'config.json');
+      expect(winIpSafe.configPaths).toContainEqual(expected);
+
+      if (originalAppData !== undefined) process.env.APPDATA = originalAppData;
+    });
+
+    it('should fall back to default AppData path in getGlobalConfigPath', () => {
+      vi.spyOn(os, 'platform').mockReturnValue('win32');
+      const originalAppData = process.env.APPDATA;
+      delete process.env.APPDATA;
+
+      const expected = path.join(os.homedir(), 'AppData', 'Roaming', 'ipsafe', 'config.json');
+      expect(ipSafe.getGlobalConfigPath()).toBe(expected);
+
+      if (originalAppData !== undefined) process.env.APPDATA = originalAppData;
+    });
+
+    it('should fall back to default XDG path when env var not set', () => {
+      vi.spyOn(os, 'platform').mockReturnValue('linux');
+      const originalXdg = process.env.XDG_CONFIG_HOME;
+      delete process.env.XDG_CONFIG_HOME;
+
+      const expected = path.join(os.homedir(), '.config', 'ipsafe', 'config.json');
+      expect(ipSafe.getGlobalConfigPath()).toBe(expected);
+
+      if (originalXdg !== undefined) process.env.XDG_CONFIG_HOME = originalXdg;
+    });
+  });
+
+  describe('loadConfig edge cases', () => {
+    it('should not show tip when showTip is false and no config found', () => {
+      fs.existsSync.mockReturnValue(false);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation();
+
+      ipSafe.loadConfig(false);
+
+      expect(logSpy).not.toHaveBeenCalled();
+      logSpy.mockRestore();
+    });
+  });
+
+  describe('initGlobalConfig edge cases', () => {
+    it('should not call mkdirSync when dir already exists', async () => {
+      fs.existsSync.mockReturnValue(true);
+      fs.writeFileSync.mockReturnValue(undefined);
+
+      await ipSafe.initGlobalConfig({ force: true });
+
+      expect(fs.mkdirSync).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('testConnectivity edge cases', () => {
+    it('should use default port and method when not provided', async () => {
+      const mockRequest = {
+        on: vi.fn(),
+        end: vi.fn(),
+        destroy: vi.fn(),
+        setTimeout: vi.fn()
+      };
+
+      const mockResponse = {
+        statusCode: 200,
+        statusMessage: 'OK',
+        headers: {},
+        on: vi.fn()
+      };
+
+      const http = require('http');
+      const requestSpy = vi.fn((options, callback) => {
+        setTimeout(() => callback(mockResponse), 10);
+        return mockRequest;
+      });
+      http.request = requestSpy;
+
+      const config = { testUrl: 'http://example.com/path?q=1', timeout: 3000 };
+      await ipSafe.testConnectivity(config);
+
+      const opts = requestSpy.mock.calls[0][0];
+      expect(opts.port).toBe(80);
+      expect(opts.method).toBe('GET');
+      expect(opts.path).toBe('/path?q=1');
+      expect(opts.headers['User-Agent']).toContain('ipsafe/');
+    });
+
+    it('should use https default port 443', async () => {
+      const mockRequest = {
+        on: vi.fn(),
+        end: vi.fn(),
+        destroy: vi.fn(),
+        setTimeout: vi.fn()
+      };
+      const mockResponse = { statusCode: 200, statusMessage: 'OK', headers: {}, on: vi.fn() };
+      const https = require('https');
+      const requestSpy = vi.fn((options, callback) => {
+        setTimeout(() => callback(mockResponse), 10);
+        return mockRequest;
+      });
+      https.request = requestSpy;
+
+      const config = { testUrl: 'https://example.com', timeout: 3000 };
+      await ipSafe.testConnectivity(config);
+
+      expect(requestSpy.mock.calls[0][0].port).toBe(443);
+    });
+  });
+
+  describe('executeCommand signal & timeout cleanup', () => {
+    it('should not crash when commandTimeout is 0', async () => {
+      const { spawn } = childProcess;
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn(),
+        kill: vi.fn()
+      };
+
+      spawn.mockImplementation(() => {
+        setTimeout(() => {
+          const closeCb = mockChild.on.mock.calls.find(c => c[0] === 'close')?.[1];
+          if (closeCb) closeCb(0);
+        }, 10);
+        return mockChild;
+      });
+
+      const result = await ipSafe.executeCommand('echo hi', { commandTimeout: 0 });
+      expect(result.exitCode).toBe(0);
+    });
+
+    it('should not crash when no config provided', async () => {
+      const { spawn } = childProcess;
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn(),
+        kill: vi.fn()
+      };
+
+      spawn.mockImplementation(() => {
+        setTimeout(() => {
+          const closeCb = mockChild.on.mock.calls.find(c => c[0] === 'close')?.[1];
+          if (closeCb) closeCb(0);
+        }, 10);
+        return mockChild;
+      });
+
+      const result = await ipSafe.executeCommand('echo hi');
+      expect(result.exitCode).toBe(0);
+    });
+
+    it('should clear timeout in signal handler when SIGINT fires', async () => {
+      const { spawn } = childProcess;
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn(),
+        kill: vi.fn()
+      };
+
+      const processOnSpy = vi.spyOn(process, 'on');
+      const sigintHandlers = [];
+      processOnSpy.mockImplementation((event, handler) => {
+        if (event === 'SIGINT') sigintHandlers.push(handler);
+        return process;
+      });
+
+      spawn.mockImplementation(() => {
+        setTimeout(() => {
+          // Trigger SIGINT handler manually
+          sigintHandlers.forEach(h => h());
+          const closeCb = mockChild.on.mock.calls.find(c => c[0] === 'close')?.[1];
+          if (closeCb) closeCb(0);
+        }, 10);
+        return mockChild;
+      });
+
+      await ipSafe.executeCommand('echo hi', { commandTimeout: 30000 });
+      expect(mockChild.kill).toHaveBeenCalledWith('SIGINT');
+    });
+  });
+
+  describe('parseCommand quote handling', () => {
+    it('should handle mixed quote types', () => {
+      expect(ipSafe.parseCommand('echo \'it"s\' fine')).toEqual(['echo', 'it"s', 'fine']);
+    });
+
+    it('should handle trailing space', () => {
+      expect(ipSafe.parseCommand('echo hi ')).toEqual(['echo', 'hi']);
+    });
+  });
+
+  describe('checkContent uppercase regex', () => {
+    it('should match regex case-insensitively', () => {
+      const config = { searchText: 'HELLO', searchType: 'regex' };
+      expect(ipSafe.checkContent('hello world', config)).toBe(true);
+    });
+  });
+
+  describe('additional branch coverage', () => {
+    it('should not show tip when config is found even if showTip true', () => {
+      fs.existsSync.mockReturnValue(true);
+      fs.readFileSync.mockReturnValue('{}');
+      const logSpy = vi.spyOn(console, 'log').mockImplementation();
+
+      ipSafe.loadConfig(true);
+
+      expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Tip:'));
+      logSpy.mockRestore();
+    });
+
+    it('should write to stdout when not in test env', async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+
+      const { spawn } = childProcess;
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn(),
+        kill: vi.fn()
+      };
+
+      const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+      spawn.mockImplementation(() => {
+        setTimeout(() => {
+          const stdoutCb = mockChild.stdout.on.mock.calls.find(c => c[0] === 'data')?.[1];
+          if (stdoutCb) stdoutCb(Buffer.from('out'));
+          const stderrCb = mockChild.stderr.on.mock.calls.find(c => c[0] === 'data')?.[1];
+          if (stderrCb) stderrCb(Buffer.from('err'));
+          const closeCb = mockChild.on.mock.calls.find(c => c[0] === 'close')?.[1];
+          if (closeCb) closeCb(0);
+        }, 10);
+        return mockChild;
+      });
+
+      await ipSafe.executeCommand('echo hi');
+      expect(stdoutSpy).toHaveBeenCalled();
+
+      process.env.NODE_ENV = originalNodeEnv;
+      stdoutSpy.mockRestore();
+      stderrSpy.mockRestore();
+    });
+
+    it('should handle URL without search query', async () => {
+      const mockRequest = {
+        on: vi.fn(),
+        end: vi.fn(),
+        destroy: vi.fn(),
+        setTimeout: vi.fn()
+      };
+      const mockResponse = { statusCode: 200, statusMessage: 'OK', headers: {}, on: vi.fn() };
+      const https = require('https');
+      const requestSpy = vi.fn((options, callback) => {
+        setTimeout(() => callback(mockResponse), 10);
+        return mockRequest;
+      });
+      https.request = requestSpy;
+
+      const config = {
+        testUrl: 'https://example.com:8443/p',
+        timeout: 3000,
+        method: 'POST',
+        userAgent: 'custom/1.0',
+        headers: { 'X-Custom': '1' }
+      };
+      await ipSafe.testConnectivity(config);
+
+      const opts = requestSpy.mock.calls[0][0];
+      expect(opts.port).toBe('8443');
+      expect(opts.method).toBe('POST');
+      expect(opts.headers['User-Agent']).toBe('custom/1.0');
+      expect(opts.headers['X-Custom']).toBe('1');
+    });
+
+    it('should pass URL search params through', async () => {
+      const mockRequest = { on: vi.fn(), end: vi.fn(), destroy: vi.fn(), setTimeout: vi.fn() };
+      const mockResponse = { statusCode: 200, statusMessage: 'OK', headers: {}, on: vi.fn() };
+      const http = require('http');
+      const requestSpy = vi.fn((options, cb) => { setTimeout(() => cb(mockResponse), 10); return mockRequest; });
+      http.request = requestSpy;
+
+      await ipSafe.testConnectivity({ testUrl: 'http://example.com/x', timeout: 3000 });
+      expect(requestSpy.mock.calls[0][0].path).toBe('/x');
+    });
+
+    it('should handle XDG_CONFIG_HOME when set', () => {
+      vi.spyOn(os, 'platform').mockReturnValue('linux');
+      const original = process.env.XDG_CONFIG_HOME;
+      process.env.XDG_CONFIG_HOME = '/custom/xdg';
+
+      const inst = new IpSafe();
+      expect(inst.configPaths).toContainEqual('/custom/xdg/ipsafe/config.json');
+      expect(inst.getGlobalConfigPath()).toBe('/custom/xdg/ipsafe/config.json');
+
+      if (original === undefined) delete process.env.XDG_CONFIG_HOME;
+      else process.env.XDG_CONFIG_HOME = original;
+    });
+
+    it('should handle APPDATA when set in getConfigPaths', () => {
+      vi.spyOn(os, 'platform').mockReturnValue('win32');
+      const original = process.env.APPDATA;
+      process.env.APPDATA = 'C:\\AppData';
+
+      const inst = new IpSafe();
+      expect(inst.configPaths).toContainEqual(path.join('C:\\AppData', 'ipsafe', 'config.json'));
+      expect(inst.getGlobalConfigPath()).toBe(path.join('C:\\AppData', 'ipsafe', 'config.json'));
+
+      if (original === undefined) delete process.env.APPDATA;
+      else process.env.APPDATA = original;
+    });
+
+    it('should handle each interactive command', async () => {
+      const { spawn } = childProcess;
+      const interactives = ['claude', 'vim', 'nano', 'less', 'more', 'top', 'htop'];
+
+      for (const cmd of interactives) {
+        const mockChild = { stdout: null, stderr: null, on: vi.fn(), kill: vi.fn() };
+        spawn.mockImplementation(() => {
+          setTimeout(() => {
+            const cb = mockChild.on.mock.calls.find(c => c[0] === 'close')?.[1];
+            if (cb) cb(0);
+          }, 5);
+          return mockChild;
+        });
+        await ipSafe.executeCommand(cmd);
+      }
+    });
+
+    it('should handle uppercase interactive command', async () => {
+      const { spawn } = childProcess;
+      const mockChild = { stdout: null, stderr: null, on: vi.fn(), kill: vi.fn() };
+      spawn.mockImplementation(() => {
+        setTimeout(() => {
+          const cb = mockChild.on.mock.calls.find(c => c[0] === 'close')?.[1];
+          if (cb) cb(0);
+        }, 5);
+        return mockChild;
+      });
+      await ipSafe.executeCommand('VIM file');
+      expect(spawn).toHaveBeenCalledWith('VIM', ['file'], { stdio: ['inherit', 'inherit', 'inherit'] });
+    });
+  });
 });

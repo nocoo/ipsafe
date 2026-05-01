@@ -1,4 +1,3 @@
-const path = require('path');
 const fs = require('fs');
 const childProcess = require('child_process');
 const IpSafe = require('../lib/ipsafe');
@@ -7,7 +6,6 @@ const BIN_PATH = require.resolve('../bin/ipsafe.js');
 
 let consoleOutput;
 let consoleErrors;
-let processExitCode;
 
 const originalArgv = process.argv;
 const originalExit = process.exit;
@@ -15,17 +13,16 @@ const originalExit = process.exit;
 async function runBin() {
   delete require.cache[BIN_PATH];
   await import(BIN_PATH + '?t=' + Date.now() + '_' + Math.random());
-  await new Promise(resolve => setTimeout(resolve, 50));
+  await new Promise(resolve => setTimeout(resolve, 200));
 }
 
 beforeEach(() => {
   consoleOutput = [];
   consoleErrors = [];
-  processExitCode = null;
 
   vi.spyOn(console, 'log').mockImplementation((...args) => consoleOutput.push(args.join(' ')));
   vi.spyOn(console, 'error').mockImplementation((...args) => consoleErrors.push(args.join(' ')));
-  process.exit = vi.fn((code) => { processExitCode = code; });
+  process.exit = vi.fn();
 
   vi.spyOn(fs, 'existsSync').mockReturnValue(false);
   vi.spyOn(fs, 'readFileSync').mockReturnValue('');
@@ -83,6 +80,20 @@ describe('bin/ipsafe CLI', () => {
 
       const output = consoleOutput.join('\n');
       expect(output).toContain('Configuration');
+    });
+
+    it('should show no-config message when no config file exists', async () => {
+      process.argv = ['node', 'ipsafe', '--config'];
+      vi.spyOn(IpSafe.prototype, 'showConfigInfo').mockReturnValue({
+        searchPaths: ['/tmp/a.json'],
+        globalPath: '/tmp/g.json',
+        currentConfig: {},
+        activeConfigPath: null
+      });
+      await runBin();
+
+      const output = consoleOutput.join('\n');
+      expect(output).toContain('No config found');
     });
   });
 
