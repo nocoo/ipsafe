@@ -11,7 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint --max-warnings=0 bin/ lib/ __tests__/",
     "lint:fix": "eslint --max-warnings=0 bin/ lib/ __tests__/ --fix",
-    "verify": "npm run lint && npm test",
+    "verify": "npm run lint && npm run test:coverage",
     "prepublishOnly": "npm run verify",
     "prepare": "husky"
   },
