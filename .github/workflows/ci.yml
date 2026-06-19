@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 jobs:
   quality:
-    uses: nocoo/base-ci/.github/workflows/bun-quality.yml@v2026.1
+    uses: nocoo/base-ci/.github/workflows/bun-quality.yml@aec4adc1a817c56790d1698329ef9398a15a754a  # v2026.5
     with:
       test-command: "npm run test:coverage"
       lint-command: "npm run lint"
