@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/brand/icon-rounded.png" alt="IPSafe logo" width="180" height="180" />
+</p>
+
 # 🛡️ ipsafe
 
 > A simple CLI tool that validates network connectivity before executing commands
@@ -269,3 +273,5 @@ Perfect for:
 - ✈️ Working while traveling  
 - 🔄 CI/CD pipelines requiring network validation
 - 🛡️ Any script that depends on internet connectivity
+
+Logo assets and usage: [guide](docs/01-logo-usage.md) · [identity study](https://hexly.ai/logos/ipsafe).

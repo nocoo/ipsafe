@@ -1,0 +1,34 @@
+{
+	"project": "ipsafe",
+	"series": "material",
+	"study": "2026-09-07-01",
+	"finishing": "01",
+	"archive": "https://github.com/nocoo/hexly.ai/tree/main/artwork/logo-family/ipsafe/2026-09-07-01",
+	"review": "https://hexly.ai/logos/ipsafe",
+	"masters": {
+		"logo.png": {
+			"sha256": "1cad3a55e3b03e27cc3962351e72026af873120e5dcd0bfb8afe9b5fe65bc75b",
+			"source": "artwork/logo-family/ipsafe/2026-09-07-01/finishing/01/exports/ipsafe-transparent-2048.png",
+			"width": 2048,
+			"height": 2048
+		},
+		"assets/brand/icon.png": {
+			"sha256": "8cd6439c85171aeb83695f1024e1aa6a502985bd152bec3a3d6f2ca7f51f9c03",
+			"source": "artwork/logo-family/ipsafe/2026-09-07-01/finishing/01/exports/ipsafe-icon-2048.png",
+			"width": 2048,
+			"height": 2048
+		},
+		"assets/brand/icon-rounded.png": {
+			"sha256": "4f671c319c84888a82007742a1478bafabc1766512bc7930d20b11f0e621264f",
+			"source": "artwork/logo-family/ipsafe/2026-09-07-01/finishing/01/exports/ipsafe-rounded-2048.png",
+			"width": 2048,
+			"height": 2048
+		},
+		"assets/brand/background.png": {
+			"sha256": "b2c4670d39c43206ea6e61c58cbb9bd7afc1e9c3df87a51d11d0acc86ec3ae9d",
+			"source": "artwork/logo-family/ipsafe/2026-09-07-01/finishing/01/background.png",
+			"width": 2048,
+			"height": 2048
+		}
+	}
+}
