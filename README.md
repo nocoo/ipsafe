@@ -1,277 +1,147 @@
 <p align="center">
-  <img src="assets/brand/icon-rounded.png" alt="IPSafe logo" width="180" height="180" />
+  <img src="assets/brand/icon-rounded.png" width="128" height="128" alt="IPSafe logo" />
+</p>
+<h1 align="center">IPSafe</h1>
+<p align="center">执行命令前，先检查指定的 HTTP 响应是否符合预期。</p>
+<p align="center">
+  <a href="docs/README.en.md">English</a>
 </p>
 
-# 🛡️ ipsafe
+## 这是什么
 
-> A simple CLI tool that validates network connectivity before executing commands
+IPSafe 是一个 Node.js 命令行工具。它先请求配置的地址，检查 HTTP 状态和可选的响应内容；检查通过后才启动命令，失败则以非零状态退出。
 
-[![npm version](https://badge.fury.io/js/ipsafe.svg)](https://badge.fury.io/js/ipsafe)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+它适合给依赖网络的脚本增加一个执行前条件。默认检查 `https://www.google.com` 是否返回 2xx；也可以改为自己的健康检查地址。检查只反映当次请求的结果，命令运行期间不会持续监控网络，也不会自动验证出口 IP、地区或代理状态。
 
-## 🚀 What is ipsafe?
+## 功能
 
-`ipsafe` is a command-line tool that checks a network condition before executing any command. If the condition passes, it executes the command. If the condition fails, it blocks execution.
+- **HTTP 条件**：检查 2xx 状态，配置请求方法、请求头、超时和重试。
+- **内容匹配**：使用不区分大小写的文本包含或正则表达式匹配响应。
+- **命令执行**：检查通过后启动程序，实时显示输出，可配置命令超时。
+- **项目与全局配置**：按优先级选择配置文件，也可创建用户级默认配置。
+- **JavaScript API**：提供 `IpSafe`、`checkNetworkSafe` 和 `executeIfSafe`，方便脚本集成。
 
-**Default behavior**: Fetches `https://www.google.com` and checks if the HTTP status code is 2xx.
+## 使用
 
-## 📦 Installation
+需要 Node.js。安装 npm 发布的 CLI：
 
 ```bash
 npm install -g ipsafe
-```
-
-## 🎯 Usage
-
-Simply prefix any command with `ipsafe`:
-
-```bash
-# Check connectivity before npm install
+ipsafe "node --version"
 ipsafe "npm install"
-
-# Verify connection before git operations  
-ipsafe "git push origin main"
-
-# Safe API calls
-ipsafe "curl https://api.example.com/data"
-
-# Configuration commands
-ipsafe --init              # Setup global config
-ipsafe --config            # Show current config
-ipsafe --help              # Show help
 ```
 
-### Output Example
+源代码运行方式见开发章节。检查失败或子命令失败时，CLI 返回退出码 1。
+
+### 配置
 
 ```bash
-$ ipsafe "npm install"
-🔍 Checking network connectivity to https://www.google.com...
-✅ Network connectivity verified
-🚀 Executing: npm install
-
-# ... npm install output (streamed in real-time)
-
-✨ Command completed successfully
-```
-
-**Visual Features:**
-- 🎨 **Colorful output** - Green for success, red for errors, cyan for info
-- 📺 **Real-time streaming** - See command output as it happens
-- 🎯 **Clear status indicators** - Emojis and colors make status obvious
-
-## ⚙️ Configuration
-
-### Quick Setup
-
-Create a global configuration that works everywhere:
-
-```bash
-# Create global config with defaults
 ipsafe --init
-
-# Check current configuration
 ipsafe --config
-
-# See where config file is located
 ipsafe --config-path
+ipsafe --help
 ```
 
-### Configuration Locations
+`--init` 创建用户级配置，已有文件时不会直接覆盖。`--config` 显示配置与查找路径，`--config-path` 显示用户级配置路径。
 
-ipsafe follows standard configuration practices with this search order:
+配置查找顺序：
 
-**Priority 1 - Project Config** (highest priority)
-- `./ipsafe.config.json` (current directory)
+| 优先级 | 位置 |
+| --- | --- |
+| 1 | 当前工作目录的 `ipsafe.config.json` |
+| 2 | macOS / Linux：`$XDG_CONFIG_HOME/ipsafe/config.json`，未设置时为 `~/.config/ipsafe/config.json` |
+| 2 | Windows：`%APPDATA%/ipsafe/config.json`，未设置时使用用户目录下的 `AppData/Roaming` |
+| 3 | `~/.ipsafe.json` |
+| 4 | 内置默认值 |
 
-**Priority 2 - Global User Config**
-- **macOS/Linux**: `~/.config/ipsafe/config.json`
-- **Windows**: `%APPDATA%/ipsafe/config.json`
+使用第一个可读取且能解析的文件，并与内置默认值合并；项目和全局配置不会逐层叠加。无效文件会产生警告，随后尝试下一个位置。
 
-**Priority 3 - Simple Dotfile** (fallback)
-- `~/.ipsafe.json`
-
-**Priority 4 - Built-in Defaults**
-
-### Configuration Format
+以下配置示例需要将 `testUrl` 换成自己的健康检查地址：
 
 ```json
 {
-  "testUrl": "https://www.google.com",
+  "testUrl": "https://example.com/health",
   "timeout": 3000,
   "retries": 1,
   "method": "GET",
-  "userAgent": "ipsafe/1.0.3",
-  "checkContent": false,
-  "searchText": null,
+  "checkContent": true,
+  "searchText": "ok",
   "searchType": "contains",
   "headers": {},
   "commandTimeout": 0
 }
 ```
 
-### Benefits of Global Config
+| 字段 | 含义 |
+| --- | --- |
+| `timeout` | 请求超时，单位毫秒 |
+| `retries` | 首次请求失败后的重试次数，重试间隔为 1 秒 |
+| `checkContent` / `searchText` | 启用响应内容检查并指定文本或模式 |
+| `searchType` | `contains` 或 `regex` |
+| `headers` / `userAgent` | 自定义检查请求头与 User-Agent |
+| `commandTimeout` | 命令超时，单位毫秒；0 表示不限制 |
 
-✅ **Works everywhere** - No need to create config in each project  
-✅ **Standard locations** - Follows OS conventions (`~/.config/`)  
-✅ **Easy setup** - One command creates global config  
-✅ **Flexible override** - Project configs can override global settings  
-✅ **Portable** - Sync via dotfiles across machines  
+HTTP 重定向不会自动跟随，3xx 响应会判为失败。若想依据 IP 或地区检查，需要选择相应接口并自己配置内容匹配规则。
 
-### Configuration Options
+### 命令与脚本集成
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `testUrl` | `https://www.google.com` | URL to test connectivity against |
-| `timeout` | `3000` | Request timeout in milliseconds |
-| `retries` | `1` | Number of retry attempts |
-| `method` | `GET` | HTTP method to use |
-| `userAgent` | `ipsafe/1.0.3` | User-Agent header |
-| `checkContent` | `false` | Enable content validation |
-| `searchText` | `null` | Text/pattern to search for in response |
-| `searchType` | `contains` | Search method: `contains` or `regex` |
-| `headers` | `{}` | Custom HTTP headers |
-| `commandTimeout` | `0` | Command execution timeout in ms (0 = no timeout) |
-
-## 🔧 How it Works
-
-1. **Condition Check**: Makes HTTP request to configured URL
-2. **Status Validation**: Verifies HTTP status code is 2xx (200-299)
-3. **Content Validation** (optional): Searches for specific text/pattern in response
-4. **Command Execution**: If all checks pass, executes the provided command with real-time output
-5. **Streaming Output**: Shows command output as it happens (great for long-running commands)
-6. **Signal Handling**: Supports Ctrl+C to interrupt long-running commands
-7. **Blocking**: If any check fails, blocks command execution
-
-## 📝 Examples
-
-### Basic Usage (Default Google Check)
-```bash
-# Uses default https://www.google.com check
-ipsafe "npm install express"
-```
-
-### Long-Running Commands
-```bash
-# Streaming output for long commands
-ipsafe "ping -c 10 google.com"
-
-# Works with any long-running command
-ipsafe "npm run build"
-ipsafe "docker build -t myapp ."
-
-# Infinite commands (use Ctrl+C to stop)
-ipsafe "ping google.com"
-ipsafe "tail -f /var/log/system.log"
-```
-
-### Interactive Commands
-```bash
-# CLI tools with prompts (using --print for non-interactive)
-ipsafe 'claude --print "What is 2+2?"'
-
-# Piped input works too
-echo "Explain Docker" | ipsafe "claude --print"
-
-# Commands that need full terminal access
-ipsafe "vim myfile.txt"     # Opens vim with full TTY
-ipsafe "htop"               # Interactive process monitor
-```
-
-### Custom URL Check
-```json
-{
-  "testUrl": "https://api.github.com"
-}
-```
-
-### IP Location Service Example (IPLocate)
-
-**IPLocate** ([https://www.iplocate.io/](https://www.iplocate.io/)) provides a free IP geolocation API that's perfect for personal daily usage. We thank IPLocate for offering this valuable service to the community!
-
-To use IPLocate, you'll need to get a free API key from their website. They offer generous free quotas that should cover most personal usage needs.
-
-```json
-{
-  "testUrl": "https://iplocate.io/api/lookup?apikey=<your_api_key>",
-  "method": "GET",
-  "checkContent": true,
-  "searchText": "ip",
-  "searchType": "contains",
-  "headers": {
-    "Accept": "application/json"
-  }
-}
-```
-
-This configuration will:
-1. Check connectivity by querying your current IP information
-2. Validate that the response contains IP data
-3. Only execute your command if the API responds correctly
-
-Replace `<your_api_key>` with your actual API key from IPLocate.
-
-### Content Validation with Regex
-```json
-{
-  "testUrl": "https://httpbin.org/json",
-  "checkContent": true,
-  "searchText": "\"slideshow\".*\"title\"",
-  "searchType": "regex"
-}
-```
-
-### Custom Headers and Authentication
-```json
-{
-  "testUrl": "https://api.private.com/health",
-  "headers": {
-    "Authorization": "Bearer your-api-key",
-    "Accept": "application/json"
-  },
-  "checkContent": true,
-  "searchText": "healthy"
-}
-```
-
-## ✅ Success Conditions
-
-The tool considers the condition **successful** when:
-- HTTP status code is 2xx (200-299)
-- Response is received within timeout period
-- No network errors occur
-- Content validation passes (if enabled)
-
-## ❌ Failure Conditions
-
-The tool considers the condition **failed** when:
-- HTTP status code is not 2xx
-- Request times out
-- Network errors (DNS resolution, connection refused, etc.)
-- Content validation fails (if enabled)
-- All retry attempts are exhausted
-
-## 🛠️ Development
+命令会被解析为程序和参数后直接启动。需要管道或重定向时，应显式调用 shell，例如 macOS / Linux：
 
 ```bash
-git clone <repository-url>
+ipsafe 'sh -c "printf hello | wc -c"'
+```
+
+`vim`、`less`、`top` 等识别出的交互程序直接继承终端。复杂引号与 shell 语法应交由显式启动的 shell 处理。
+
+在 JavaScript 中，`new IpSafe(configPath).run(args)` 会按配置检查并执行。`checkNetworkSafe(configPath)` 只返回检查是否通过；`executeIfSafe(command, configPath)` 返回带 `success` 的结果，但当前实现未将配置中的 `commandTimeout` 传给命令执行器，需要该超时行为时使用 `IpSafe.run`。
+
+仓库也提供独立检查脚本，输出 `SAFE` 或 `UNSAFE` 及对应退出状态：
+
+```bash
+node integrations/claude-code.js ./ipsafe.config.json
+```
+
+它可以由其他工具调用，需要自行接入工具的执行流程。
+
+## 开发
+
+开发测试建议使用 Node.js 24 和 Bun：
+
+```bash
+git clone https://github.com/nocoo/ipsafe.git
 cd ipsafe
-npm install
-npm test          # Run tests
-npm run lint      # Run linter
+bun install --frozen-lockfile
+node bin/ipsafe.js --help
 ```
 
-## 📄 License
+当前源码使用 CommonJS 和 Node.js 内置 HTTP、HTTPS、文件系统及子进程模块，没有运行时第三方依赖。
 
-MIT © [nocoo](https://github.com/nocoo)
+## 测试
 
-## 💡 Why ipsafe?
+```bash
+bun run test
+bun run test:coverage
+```
 
-Have you ever started a long-running command only to realize you're offline? `ipsafe` prevents this frustration by checking connectivity first.
+测试覆盖配置、HTTP 判定与重试、内容匹配、命令解析和 CLI 分支，使用模拟的网络、文件系统和子进程。仓库没有独立的浏览器或公网集成测试入口；终端交互需在目标操作系统检查。
 
-Perfect for:
-- 🏠 Remote work with unstable connections
-- ✈️ Working while traveling  
-- 🔄 CI/CD pipelines requiring network validation
-- 🛡️ Any script that depends on internet connectivity
+## 技术栈
 
-Logo assets and usage: [guide](docs/01-logo-usage.md) · [identity study](https://hexly.ai/logos/ipsafe).
+| 技术 | 用途 |
+| --- | --- |
+| JavaScript / Node.js | CLI 与 CommonJS API |
+| node:http / node:https | 执行前的 HTTP 检查 |
+| node:child_process | 命令启动、输出与信号 |
+| JSON / node:fs | 项目和用户配置 |
+| Vitest | 单元与 CLI 模拟测试 |
+
+## 文档
+
+- [默认配置示例](ipsafe.config.json)
+- [核心检查与执行代码](lib/ipsafe.js)
+- [独立集成检查脚本](integrations/claude-code.js)
+- [品牌资源使用](docs/01-logo-usage.md)
+
+## 许可证
+
+[MIT](LICENSE)
