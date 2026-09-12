@@ -1,4 +1,4 @@
-name: Node.js Package
+name: Release
 
 on:
   release:
@@ -7,8 +7,12 @@ on:
     inputs:
       tag:
         description: "Release tag to publish (e.g. v1.0.3)"
-        required: false
+        required: true
         type: string
+
+concurrency:
+  group: npm-publish-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
 
 jobs:
   publish-npm:
@@ -19,7 +23,7 @@ jobs:
     steps:
       - name: Resolve release source
         id: source
-        uses: nocoo/base-ci/.github/actions/release-source@2857469cc5206e7a4988171a1282209617996a67
+        uses: nocoo/base-ci/.github/actions/release-source@ad43150de3a2be2fa464b5cd2f921dc4fa9f8f0f
         with:
           github-token: ${{ github.token }}
           expected-workflow-path: ".github/workflows/ci.yml"
@@ -37,7 +41,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node and npm
-        uses: nocoo/base-ci/.github/actions/setup-js@2857469cc5206e7a4988171a1282209617996a67
+        uses: nocoo/base-ci/.github/actions/setup-js@ad43150de3a2be2fa464b5cd2f921dc4fa9f8f0f
         with:
           package-manager: npm
           runtime-version: "11.19.1"
