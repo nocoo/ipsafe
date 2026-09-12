@@ -1,33 +1,63 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-
 name: Node.js Package
 
 on:
   release:
-    types: [created]
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (e.g. v1.0.3)"
+        required: false
+        type: string
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci --ignore-scripts
-      - run: npm test
-
   publish-npm:
-    needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Resolve release source
+        id: source
+        uses: nocoo/base-ci/.github/actions/release-source@2857469cc5206e7a4988171a1282209617996a67
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci --ignore-scripts
-      - run: npm publish
+          github-token: ${{ github.token }}
+          expected-workflow-path: ".github/workflows/ci.yml"
+          expected-workflow-name: "CI"
+          expected-branch: "main"
+          tag: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag || '' }}
+          package-version-match: true
+          require-fresh-main: false
+
+      - name: Checkout proven SHA
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.source.outputs.target-sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node and npm
+        uses: nocoo/base-ci/.github/actions/setup-js@2857469cc5206e7a4988171a1282209617996a67
+        with:
+          package-manager: npm
+          runtime-version: "11.19.1"
+          node-version: "24.20.0"
+          install-policy: blocked
+
+      - name: Run verification tests
+        run: npm test
+
+      - name: Verify package pack dry-run
+        run: npm pack --dry-run --ignore-scripts
+
+      - name: Publish to npm
         env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::Missing npm publication token (secrets.npm_token)"
+            exit 1
+          fi
+          echo "//registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm publish

@@ -1,17 +1,23 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
+
 jobs:
   quality:
-    uses: nocoo/base-ci/.github/workflows/bun-quality.yml@aec4adc1a817c56790d1698329ef9398a15a754a  # v2026.5
+    uses: nocoo/base-ci/.github/workflows/quality.yml@2857469cc5206e7a4988171a1282209617996a67
     with:
+      package-manager: bun
+      runtime-version: "1.4.2"
+      install-policy: blocked
       test-command: "npm run test:coverage"
       lint-command: "npm run lint"
-      typecheck-command: "true"
-      enable-l2: "false"
+      typecheck: false
+      disabled-check-reasons: '{"typecheck": "plain JavaScript project without TypeScript compiler setup"}'
+      coverage-path: "coverage"
       osv-config: "osv-scanner.toml"
     secrets: inherit
