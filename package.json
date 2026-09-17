@@ -26,10 +26,10 @@
   "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "5.0.1",
     "eslint": "^9.29.0",
     "husky": "^9.1.7",
-    "vitest": "^4.1.11"
+    "vitest": "5.0.1"
   },
   "overrides": {
     "@humanfs/node": "0.16.8",
