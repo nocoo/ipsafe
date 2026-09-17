@@ -75,10 +75,10 @@ Helper CLI: G2 applies (lockfiles + published package).
 
 | Hook | Verifies | Budget | Runs |
 |---|---|---|---|
-| pre-commit | `npm run test:coverage` | <30s | L1 (not G1 lint) |
+| pre-commit | working-tree `npm run test:coverage` (not index snapshot) | target <30s (unmeasured) | L1 only (lint not in hook) |
 | pre-push | none | — | missing |
 
-Hooks check-only. `--no-verify` forbidden.
+Target: index-snapshot G1+L1; stdin-ref L2+G2. Check-only; `--no-verify` forbidden.
 
 ## Resources / Isolation
 
