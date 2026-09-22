@@ -6,11 +6,13 @@ Direction: [README.md](README.md). Frameworks must not rewrite this file.
 
 ## Sources of Truth
 
+Maintain this root `AGENTS.md` as the only project handbook; do not create legacy aliases, imports or copies.
+
 This file is the **contract**. Hooks, CI, and config are **enforcement**. If they disagree, that is a failure — raise enforcement to match this file; never lower the contract to a weaker hook.
 
 | Fact | Where |
 |---|---|
-| Agent handbook | this file (not `.claude/CLAUDE.md`) |
+| Agent handbook | this root `AGENTS.md` |
 | Human docs | README.md, `docs/*.md` |
 | Version | `package.json` `"version"` as `1.2.3`, display `v1.2.3` |
 | Enforcement | `.husky/pre-commit`, `.github/workflows/ci.yml`, `vitest.config.ts` |
@@ -23,7 +25,7 @@ This file is the **contract**. Hooks, CI, and config are **enforcement**. If the
 - Check is a single request (status 2xx and optional body match) then exec. No continuous monitoring, no geo/proxy verification.
 - Default probe is `https://www.google.com`. Do not bake production secrets into `ipsafe.config.json`.
 - CommonJS. `bin/ipsafe.js` is the CLI; `lib/ipsafe.js` is the library.
-- Nested `.claude/CLAUDE.md` is a stale pointer only. Jest is not the test runner.
+- Vitest is the test runner, not Jest.
 
 ## Stack / Layout
 
@@ -43,8 +45,10 @@ __tests__/  ipsafe.config.json
 
 ## Commands
 
+Run from the repository root. CI pins Bun 1.4.2 and Node 24.20.0; tests need no production probe or credentials. Use `npm ci` with the npm lockfile locally; CI uses the frozen Bun lockfile with dependency lifecycle scripts blocked.
+
 ```bash
-npm install
+npm ci
 npm run lint                # eslint --max-warnings=0 bin/ lib/ __tests__/
 npm run test:coverage       # vitest --coverage (thresholds 95)
 npm test                    # vitest run
@@ -57,14 +61,14 @@ No `typecheck` script (plain JS).
 ## Verification
 
 Status: `enforced` | `planned` | `manual` | `N/A`.
-6DQ = L1/L2/L3 + G1/G2 + D1. Required L1 bar is statements/branches/functions/lines each ≥95%; no skipped or focused tests.
+6DQ retains its name with unified L1, L2/L3, G2 and D1; former G1 merged into L1 on 2026-09-21. Follow the maintained `system0-6dq-l1` contract. Required L1 bar is statements/branches/functions/lines each ≥95%; no skipped or focused tests.
 
 | Change | Proof | Status | Evidence |
 |---|---|---|---|
 | Logic | L1 Vitest ≥ 95% four metrics | enforced | `vitest.config.ts` 95; pre-commit `npm run test:coverage`; CI same |
 | API / schema | L2 real HTTP against a local server, 100% CLI/library paths | planned | unit tests mock HTTP; no local listen harness |
 | UI path | L3 packed-CLI process E2E | planned | no browser; CLI process E2E against a loopback probe is still required, not N/A |
-| Types / lint | G1 0 warning ESLint | enforced | CI `lint-command`; typecheck disabled with reason (plain JS) |
+| Complete L1 | 95% four-metric coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | planned | Coverage subcheck runs before commit; zero-warning ESLint runs in CI, not that hook. Typecheck disabled for plain JS; snapshot isolation, skip/focus rejection and <30s timing remain unverified |
 | Deps / secrets | G2 osv-scanner + gitleaks | enforced | quality.yml default security + `osv-scanner.toml`; lockfiles `bun.lock,package-lock.json`. No pre-push hook |
 | Test isolation | D1 no prod network as fixture | planned | mocks isolate unit tests; no dedicated loopback server or marker |
 | Bundler output | n/a | N/A | no bundler |
@@ -78,7 +82,7 @@ Helper CLI: G2 applies (lockfiles + published package).
 | pre-commit | working-tree `npm run test:coverage` (not index snapshot) | target <30s (unmeasured) | L1 only (lint not in hook) |
 | pre-push | none | — | missing |
 
-Target: index-snapshot G1+L1; stdin-ref L2+G2. Check-only; `--no-verify` forbidden.
+Target: index-snapshot unified L1; stdin-ref L2+G2. Check-only; `--no-verify` forbidden.
 
 ## Resources / Isolation
 
@@ -100,4 +104,4 @@ Omit Cloudflare ports. Tests must not depend on production URLs as the only prob
 | Cross-project lesson | nmem / global `AGENTS.md` / `rules/` |
 | Deterministically checkable rule | hook or test, not prose |
 
-- Ignore `.claude/CLAUDE.md` architecture (Jest/11-case list is stale). This file is the contract.
+- Preserve single-request probe semantics; test with mocks or an isolated loopback receiver.
