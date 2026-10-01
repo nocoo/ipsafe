@@ -140,7 +140,6 @@ bun run test:coverage
 - [默认配置示例](ipsafe.config.json)
 - [核心检查与执行代码](lib/ipsafe.js)
 - [独立集成检查脚本](integrations/claude-code.js)
-- [品牌资源使用](docs/01-logo-usage.md)
 
 ## 许可证
 

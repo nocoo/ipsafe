@@ -140,7 +140,6 @@ Tests cover configuration, HTTP conditions and retries, content matching, comman
 - [Default configuration example](../ipsafe.config.json)
 - [Core check and execution code](../lib/ipsafe.js)
 - [Standalone integration check](../integrations/claude-code.js)
-- [Brand asset usage](01-logo-usage.md)
 
 ## License
 
