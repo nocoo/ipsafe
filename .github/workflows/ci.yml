@@ -20,5 +20,4 @@ jobs:
       typecheck: false
       disabled-check-reasons: '{"typecheck": "plain JavaScript project without TypeScript compiler setup"}'
       coverage-path: "coverage"
-      osv-config: "osv-scanner.toml"
       lockfiles: "bun.lock,package-lock.json"

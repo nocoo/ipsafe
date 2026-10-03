@@ -69,7 +69,7 @@ Status: `enforced` | `planned` | `manual` | `N/A`.
 | API / schema | L2 real HTTP against a local server, 100% CLI/library paths | planned | unit tests mock HTTP; no local listen harness |
 | UI path | L3 packed-CLI process E2E | planned | no browser; CLI process E2E against a loopback probe is still required, not N/A |
 | Complete L1 | 95% four-metric coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | planned | Coverage subcheck runs before commit; zero-warning ESLint runs in CI, not that hook. Typecheck disabled for plain JS; snapshot isolation, skip/focus rejection and <30s timing remain unverified |
-| Deps / secrets | G2 osv-scanner + gitleaks | enforced | quality.yml default security + `osv-scanner.toml`; lockfiles `bun.lock,package-lock.json`. No pre-push hook |
+| Deps / secrets | G2 osv-scanner + gitleaks | enforced | quality.yml default security with no advisory ignores; lockfiles `bun.lock,package-lock.json`. No pre-push hook |
 | Test isolation | D1 no prod network as fixture | planned | mocks isolate unit tests; no dedicated loopback server or marker |
 | Bundler output | n/a | N/A | no bundler |
 | Docs | README if CLI flags change | manual | human review |
