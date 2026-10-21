@@ -1,6 +1,6 @@
 {
   "name": "ipsafe",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A CLI tool that validates network connectivity before executing commands",
   "main": "index.js",
   "bin": {
@@ -37,6 +37,6 @@
     "js-yaml": "4.3.2",
     "nanoid": "3.3.18",
     "postcss": "8.5.26",
-    "vite": "8.0.16"
+    "vite": "8.1.6"
   }
 }
