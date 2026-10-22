@@ -13,7 +13,7 @@ jobs:
     with:
       package-manager: bun
       runtime-version: "1.4.2"
-      node-version: "24.20.0"
+      node-version: "24.22.1"
       install-policy: blocked
       test-command: "npm run test:coverage"
       lint-command: "npm run lint"

@@ -45,7 +45,7 @@ jobs:
         with:
           package-manager: npm
           runtime-version: "11.19.1"
-          node-version: "24.20.0"
+          node-version: "24.22.1"
           install-policy: blocked
 
       - name: Run verification tests

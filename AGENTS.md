@@ -45,7 +45,7 @@ __tests__/  ipsafe.config.json
 
 ## Commands
 
-Run from the repository root. CI pins Bun 1.4.2 and Node 24.20.0; tests need no production probe or credentials. Use `npm ci` with the npm lockfile locally; CI uses the frozen Bun lockfile with dependency lifecycle scripts blocked.
+Run from the repository root. CI pins Bun 1.4.2 and Node 24.22.1; tests need no production probe or credentials. Use `npm ci` with the npm lockfile locally; CI uses the frozen Bun lockfile with dependency lifecycle scripts blocked.
 
 ```bash
 npm ci
