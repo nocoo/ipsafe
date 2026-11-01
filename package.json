@@ -7,12 +7,13 @@
     "ipsafe": "bin/ipsafe.js"
   },
   "scripts": {
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "lint": "eslint --max-warnings=0 bin/ lib/ __tests__/",
-    "lint:fix": "eslint --max-warnings=0 bin/ lib/ __tests__/ --fix",
+    "test": "node scripts/ensure-patches.js && vitest run",
+    "test:coverage": "node scripts/ensure-patches.js && vitest run --coverage",
+    "lint": "node scripts/ensure-patches.js && eslint --max-warnings=0 bin/ lib/ __tests__/",
+    "lint:fix": "node scripts/ensure-patches.js && eslint --max-warnings=0 bin/ lib/ __tests__/ --fix",
     "verify": "npm run lint && npm run test:coverage",
     "prepublishOnly": "npm run verify",
+    "postinstall": "patch-package",
     "prepare": "husky"
   },
   "keywords": [
@@ -29,12 +30,15 @@
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "^9.29.0",
     "husky": "^9.1.7",
+    "patch-package": "8.0.1",
     "vitest": "5.0.5"
   },
   "overrides": {
     "@humanfs/node": "0.16.8",
-    "brace-expansion": "1.1.21",
+    "@eslint/config-array": "0.23.5",
+    "brace-expansion": "5.0.12",
     "js-yaml": "4.3.2",
+    "minimatch": "11.0.3",
     "nanoid": "3.3.18",
     "postcss": "8.5.26",
     "vite": "8.1.6"
