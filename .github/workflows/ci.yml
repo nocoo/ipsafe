@@ -21,3 +21,18 @@ jobs:
       disabled-check-reasons: '{"typecheck": "plain JavaScript project without TypeScript compiler setup"}'
       coverage-path: "coverage"
       lockfiles: "bun.lock,package-lock.json"
+
+  packed-cli-install:
+    name: Packed CLI install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6.3.0
+        with:
+          node-version: "24.22.1"
+
+      - name: Verify packed tarball installs with lifecycle scripts
+        run: node scripts/verify-packed-cli-install.js
