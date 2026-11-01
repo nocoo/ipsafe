@@ -12,9 +12,9 @@
     "lint": "node scripts/ensure-patches.js && eslint --max-warnings=0 bin/ lib/ __tests__/",
     "lint:fix": "node scripts/ensure-patches.js && eslint --max-warnings=0 bin/ lib/ __tests__/ --fix",
     "verify": "npm run lint && npm run test:coverage",
-    "prepublishOnly": "npm run verify",
-    "postinstall": "patch-package",
-    "prepare": "husky"
+    "verify:packed-install": "node scripts/verify-packed-cli-install.js",
+    "prepublishOnly": "npm run verify && npm run verify:packed-install",
+    "prepare": "node scripts/prepare-husky.js"
   },
   "keywords": [
     "cli",
