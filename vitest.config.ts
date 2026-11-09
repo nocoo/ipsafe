@@ -1,10 +1,14 @@
 import { defineConfig } from "vitest/config";
+import RequireSelectedTests from "./__tests__/helpers/require-selected-tests.js";
 
 export default defineConfig({
   cacheDir: "node_modules/.cache/vitest",
   test: {
     globals: true,
     environment: "node",
+    allowOnly: false,
+    passWithNoTests: false,
+    reporters: ["default", new RequireSelectedTests()],
     server: {
       deps: {
         // Force vitest to transform our CommonJS source so vi.mock()
