@@ -65,10 +65,10 @@ Status: `enforced` | `planned` | `manual` | `N/A`.
 
 | Change | Proof | Status | Evidence |
 |---|---|---|---|
-| Logic | L1 Vitest ≥ 95% four metrics | enforced | `vitest.config.ts` 95; pre-commit `npm run test:coverage`; CI same |
+| Logic | L1 Vitest ≥ 95% four metrics | enforced | `vitest.config.ts` 95; pre-commit index snapshot `npm run test:coverage`; CI same |
 | API / schema | L2 real HTTP against a local server, 100% CLI/library paths | planned | unit tests mock HTTP; no local listen harness |
 | UI path | L3 packed-CLI process E2E | planned | no browser; CLI process E2E against a loopback probe is still required, not N/A |
-| Complete L1 | 95% four-metric coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | planned | Coverage subcheck runs before commit; zero-warning ESLint runs in CI, not that hook. Typecheck disabled for plain JS; snapshot isolation, skip/focus rejection and <30s timing remain unverified |
+| Complete L1 | 95% four-metric coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | enforced | Installed pre-commit exports `git checkout-index` to a temp dir and runs `npm run test:coverage` and `npm run lint` (`--max-warnings=0`). Vitest sets `allowOnly: false`, `passWithNoTests: false`, and `RequireSelectedTests`. Typecheck N/A (plain JS). Target wall time <30s on ordinary code changes |
 | Deps / secrets | G2 osv-scanner + gitleaks | enforced | quality.yml default security with no advisory ignores; lockfiles `bun.lock,package-lock.json`. No pre-push hook |
 | Test isolation | D1 no prod network as fixture | planned | mocks isolate unit tests; no dedicated loopback server or marker |
 | Bundler output | n/a | N/A | no bundler |
@@ -79,7 +79,7 @@ Helper CLI: G2 applies (lockfiles + published package).
 
 | Hook | Verifies | Budget | Runs |
 |---|---|---|---|
-| pre-commit | working-tree `npm run test:coverage` (not index snapshot) | target <30s (unmeasured) | L1 only (lint not in hook) |
+| pre-commit | index-snapshot `npm run test:coverage` + `npm run lint` | target <30s | L1 unified (coverage + ESLint) |
 | pre-push | none | — | missing |
 
 Target: index-snapshot unified L1; stdin-ref L2+G2. Check-only; `--no-verify` forbidden.
