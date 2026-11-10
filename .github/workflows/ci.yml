@@ -1,3 +1,5 @@
+# CI slot standard v1 (nocoo/base-ci docs/slots.md): impl S2, S3, G1, G2, L1, P1, Z1 via quality.yml;
+# na S1, B1, L1.5, L3; todo L2 in slot-status. nocoo/base-ci v2026.12: top-level slot jobs, P1 吸收 packed-CLI 安装验证。
 name: CI
 
 on:
@@ -7,32 +9,36 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   quality:
-    uses: nocoo/base-ci/.github/workflows/quality.yml@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+    uses: nocoo/base-ci/.github/workflows/quality.yml@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
     with:
       package-manager: bun
       runtime-version: "1.4.2"
       node-version: "26.12.1"
       install-policy: blocked
+      typecheck: false
+      disabled-check-reasons: '{"typecheck": "纯 JavaScript 项目，无 TypeScript 编译器配置"}'
       test-command: "npm run test:coverage"
       lint-command: "npm run lint"
-      typecheck: false
-      disabled-check-reasons: '{"typecheck": "plain JavaScript project without TypeScript compiler setup"}'
       coverage-path: "coverage"
       lockfiles: "bun.lock,package-lock.json"
-
-  packed-cli-install:
-    name: Packed CLI install
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6.3.0
-        with:
-          node-version: "26.12.1"
-
-      - name: Verify packed tarball installs with lifecycle scripts
-        run: node scripts/verify-packed-cli-install.js
+      workflow-lint: true
+      package-check: true
+      package-command: "npm run verify:packed-install"
+      slot-status: >-
+        {"S1": {"status": "na", "reason": "纯 JavaScript 项目，无 TypeScript 类型检查"},
+        "S2": {"status": "impl"},
+        "S3": {"status": "impl"},
+        "G1": {"status": "impl"},
+        "G2": {"status": "impl"},
+        "B1": {"status": "na", "reason": "CLI 库无 build 脚本与可交付构建产物"},
+        "L1": {"status": "impl"},
+        "L1.5": {"status": "na", "reason": "非 Cloudflare Worker 项目"},
+        "L2": {"status": "todo", "reason": "尚无 loopback HTTP 探针服务与 API E2E 测试套件"},
+        "L3": {"status": "na", "reason": "无浏览器界面；npm pack 安装冒烟在 P1 执行"},
+        "P1": {"status": "impl"},
+        "Z1": {"status": "impl"}}
