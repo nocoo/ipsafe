@@ -105,7 +105,7 @@ node integrations/claude-code.js ./ipsafe.config.json
 
 ## 开发
 
-开发测试建议使用 Node.js 24 和 Bun：
+开发测试建议使用 Node.js 26 和 Bun：
 
 ```bash
 git clone https://github.com/nocoo/ipsafe.git

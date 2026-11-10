@@ -105,7 +105,7 @@ Other tools can call it, but you must connect it to their execution flow yoursel
 
 ## Development
 
-Node.js 24 and Bun are recommended for development and tests:
+Node.js 26 and Bun are recommended for development and tests:
 
 ```bash
 git clone https://github.com/nocoo/ipsafe.git
