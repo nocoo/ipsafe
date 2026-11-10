@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Resolve release source
         id: source
-        uses: nocoo/base-ci/.github/actions/release-source@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+        uses: nocoo/base-ci/.github/actions/release-source@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
         with:
           github-token: ${{ github.token }}
           expected-workflow-path: ".github/workflows/ci.yml"
@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node and npm
-        uses: nocoo/base-ci/.github/actions/setup-js@633a5545fcfec91b688840650d4edf3e9cc1abbd # v2026.10
+        uses: nocoo/base-ci/.github/actions/setup-js@1ea10ecab22b72512399485391603fe03a161016 # v2026.12
         with:
           package-manager: npm
           runtime-version: "11.19.1"
