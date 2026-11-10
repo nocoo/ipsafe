@@ -1,6 +1,6 @@
 {
   "name": "ipsafe",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A CLI tool that validates network connectivity before executing commands",
   "main": "index.js",
   "bin": {
@@ -27,11 +27,11 @@
   "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
-    "@vitest/coverage-v8": "5.0.5",
-    "eslint": "^9.29.0",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.14.0",
     "husky": "^9.1.7",
     "patch-package": "8.0.1",
-    "vitest": "5.0.5"
+    "vitest": "5.1.0"
   },
   "overrides": {
     "@humanfs/node": "0.16.8",

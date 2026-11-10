@@ -8,6 +8,5 @@ describe('minimatch security overrides', () => {
 
   it('loads ESLint minimatch consumers (ESM entry points)', async () => {
     await expect(import('@eslint/config-array')).resolves.toBeDefined();
-    await expect(import('@eslint/eslintrc')).resolves.toBeDefined();
   });
 });
