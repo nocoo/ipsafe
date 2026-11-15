@@ -61,15 +61,15 @@ No `typecheck` script (plain JS).
 ## Verification
 
 Status: `enforced` | `planned` | `manual` | `N/A`.
-6DQ retains its name with unified L1, L2/L3, G2 and D1; former G1 merged into L1 on 2026-09-21. Follow the maintained `system0-6dq-l1` contract. Required L1 bar is statements/branches/functions/lines each ≥95%; no skipped or focused tests.
+Required L1 bar is statements/branches/functions/lines each ≥95%; no skipped or focused tests.
 
 | Change | Proof | Status | Evidence |
 |---|---|---|---|
 | Logic | L1 Vitest ≥ 95% four metrics | enforced | `vitest.config.ts` 95; pre-commit index snapshot `npm run test:coverage`; CI same |
 | API / schema | L2 real HTTP against a local server, 100% CLI/library paths | planned | unit tests mock HTTP; no local listen harness |
-| UI path | L3 packed-CLI process E2E | planned | no browser; CLI process E2E against a loopback probe is still required, not N/A |
+| UI path | P1 packed-CLI process E2E | enforced | `npm run verify:packed-install` in P1 |
 | Complete L1 | 95% four-metric coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | enforced | Installed pre-commit exports `git checkout-index` to a temp dir and runs `npm run test:coverage` and `npm run lint` (`--max-warnings=0`). Vitest sets `allowOnly: false`, `passWithNoTests: false`, and `RequireSelectedTests`. Typecheck N/A (plain JS). Target wall time <30s on ordinary code changes |
-| Deps / secrets | G2 osv-scanner + gitleaks | enforced | quality.yml default security with no advisory ignores; lockfiles `bun.lock,package-lock.json`. No pre-push hook |
+| Deps / secrets | G1 gitleaks + G2 osv-scanner | enforced | `quality-slots.yml` with no advisory ignores; lockfiles `bun.lock,package-lock.json`. No pre-push hook |
 | Test isolation | D1 no prod network as fixture | planned | mocks isolate unit tests; no dedicated loopback server or marker |
 | Bundler output | n/a | N/A | no bundler |
 | Docs | README if CLI flags change | manual | human review |
