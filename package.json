@@ -11,7 +11,8 @@
     "test:coverage": "node scripts/ensure-patches.js && vitest run --coverage",
     "lint": "node scripts/ensure-patches.js && biome check --error-on-warnings bin/ lib/ __tests__/",
     "lint:fix": "node scripts/ensure-patches.js && biome check --write bin/ lib/ __tests__/",
-    "verify": "npm run lint && npm run test:coverage",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run lint && npm run test:coverage",
     "verify:packed-install": "node scripts/verify-packed-cli-install.js",
     "prepublishOnly": "npm run verify && npm run verify:packed-install",
     "prepare": "node scripts/prepare-husky.js"
@@ -28,9 +29,11 @@
   "type": "commonjs",
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
+    "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "5.1.0",
     "husky": "^9.1.7",
     "patch-package": "8.0.1",
+    "typescript": "^7.0.2",
     "vitest": "5.1.0"
   },
   "overrides": {
