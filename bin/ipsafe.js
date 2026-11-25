@@ -14,11 +14,21 @@ const colors = {
 };
 
 // Helper functions for colored output
+/**
+ * @param {string} text
+ * @param {keyof typeof colors} color
+ * @returns {string}
+ */
 const colorize = (text, color) => `${colors[color]}${text}${colors.reset}`;
+/** @param {string} text */
 const success = (text) => colorize(text, "green");
+/** @param {string} text */
 const error = (text) => colorize(text, "red");
+/** @param {string} text */
 const info = (text) => colorize(text, "cyan");
+/** @param {string} text */
 const warning = (text) => colorize(text, "yellow");
+/** @param {string} text */
 const dim = (text) => colorize(text, "gray");
 
 function showHelp() {
@@ -37,6 +47,7 @@ function showHelp() {
   console.log(`  ipsafe --init              ${dim("Setup global config")}`);
 }
 
+/** @param {string[]} args */
 async function handleInit(args) {
   const ipSafe = new IpSafe();
   const force = args.includes("--force");
@@ -45,8 +56,8 @@ async function handleInit(args) {
     const configPath = await ipSafe.initGlobalConfig({ force });
     console.log(`✅ ${success("Global config created at:")} ${configPath}`);
     console.log(`💡 ${dim("Edit this file to customize your network checks")}`);
-  } catch (error) {
-    console.error(`❌ ${error.message}`);
+  } catch (err) {
+    console.error(`❌ ${/** @type {Error} */ (err).message}`);
     process.exit(1);
   }
 }
@@ -126,18 +137,19 @@ async function main() {
     await ipSafe.executeCommand(command, config);
     console.log(`\n✨ ${success("Command completed successfully")}`);
   } catch (err) {
+    const message = /** @type {Error} */ (err).message;
     // Check if this is a network connectivity error or command execution error
     if (
-      err.message.includes("Request timeout") ||
-      err.message.includes("getaddrinfo") ||
-      err.message.includes("HTTP") ||
-      err.message.includes("ENOTFOUND") ||
-      err.message.includes("Content check failed")
+      message.includes("Request timeout") ||
+      message.includes("getaddrinfo") ||
+      message.includes("HTTP") ||
+      message.includes("ENOTFOUND") ||
+      message.includes("Content check failed")
     ) {
-      console.error(`❌ ${error("Network connectivity failed:")} ${err.message}`);
+      console.error(`❌ ${error("Network connectivity failed:")} ${message}`);
       console.error(`🚫 ${warning("Command not executed for safety")}`);
     } else {
-      console.error(`❌ ${error("Command execution failed:")} ${err.message}`);
+      console.error(`❌ ${error("Command execution failed:")} ${message}`);
     }
     process.exit(1);
   }

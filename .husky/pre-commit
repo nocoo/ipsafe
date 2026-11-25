@@ -63,6 +63,7 @@ if ! grep -Fq -- '--coverage' package.json; then
 fi
 
 run_l1() {
+	npm run typecheck
 	npm run test:coverage
 	if [ ! -d coverage ]; then
 		echo "pre-commit: coverage output directory missing" >&2
@@ -74,6 +75,7 @@ run_l1() {
 if [ -n "${IPSAFE_L1_TIMEOUT_SEC:-}" ]; then
 	if command -v timeout >/dev/null 2>&1; then
 		timeout --preserve-status --signal=TERM "$IPSAFE_L1_TIMEOUT_SEC" sh -ec '
+			npm run typecheck
 			npm run test:coverage
 			test -d coverage
 			npm run lint

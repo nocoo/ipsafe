@@ -15,10 +15,16 @@ env:
 jobs:
   s1-types:
     name: "S1: Types"
-    if: ${{ vars.ENABLE_S1_TYPES == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - run: echo "N/A - Plain JavaScript project"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: nocoo/base-ci/.github/actions/setup-js@6424d395d36a815d931f10e557762eb635d511c0 # v2026.16
+        with:
+          package-manager: bun
+          runtime-version: ${{ env.BUN_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+          install-policy: blocked
+      - run: npm run typecheck
 
   s2-lint:
     name: "S2: Lint"
@@ -155,6 +161,7 @@ jobs:
       - name: Verify required slots passed
         run: |
           for r in \
+            "${{ needs.s1-types.result }}" \
             "${{ needs.s2-lint.result }}" \
             "${{ needs.s3-workflow.result }}" \
             "${{ needs.g1-secrets.result }}" \
@@ -167,7 +174,6 @@ jobs:
             fi
           done
           for r in \
-            "${{ needs.s1-types.result }}" \
             "${{ needs.b1-build.result }}" \
             "${{ needs.l2-runtime.result }}" \
             "${{ needs.l3-integration.result }}" \

@@ -21,7 +21,7 @@ async function main() {
       process.exit(1);
     }
   } catch (error) {
-    console.error('ERROR:', error.message);
+    console.error('ERROR:', /** @type {Error} */ (error).message);
     process.exit(2);
   }
 }
