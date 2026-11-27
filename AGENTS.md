@@ -74,7 +74,7 @@ Required L1 bar is statements/branches/functions/lines each ≥95%; no skipped o
 | Test isolation | D1 no prod network as fixture | planned | mocks isolate unit tests; no dedicated loopback server or marker |
 | Bundler output | n/a | N/A | no bundler |
 | Docs | README if CLI flags change | manual | human review |
-| Release | npm publish from proven SHA | enforced | `npm-publish.yml` via release-source |
+| Release | Local npm publish after verify | manual | Run `npm publish` locally after `npm run verify` (no CI publish workflow) |
 
 Helper CLI: G2 applies (lockfiles + published package).
 
@@ -91,8 +91,8 @@ Omit Cloudflare ports. Tests must not depend on production URLs as the only prob
 
 ## Operations / Release
 
-- Entry: GitHub Release / `npm-publish.yml`
-- Auth: npm publish token (CI)
+- Entry: Local `npm publish` (no GitHub Actions publish workflow)
+- Auth: Local npm CLI session
 - Before ship: `npm run verify`; `prepublishOnly` repeats it
 - Runbook: README
 
