@@ -15,7 +15,7 @@ This file is the **contract**. Hooks, CI, and config are **enforcement**. If the
 | Agent handbook | this root `AGENTS.md` |
 | Human docs | README.md, `docs/*.md` |
 | Version | `package.json` `"version"` as `1.2.3`, display `v1.2.3` |
-| Enforcement | `.husky/pre-commit`, `.github/workflows/ci.yml`, `vitest.config.ts` |
+| Enforcement | `.husky/pre-commit`, `.github/workflows/pipeline.yml`, `.github/workflows/quality-slots.yml`, `vitest.config.ts` |
 | Machine rules | global `AGENTS.md`, `rules/git-commit.md` |
 | Accidents | [Retrospective.md](Retrospective.md) |
 | Env files | none |
@@ -70,7 +70,7 @@ Required L1 bar is statements/branches/functions/lines each ≥95%; no skipped o
 | UI path | P1 packed-CLI process E2E | enforced | `npm run verify:packed-install` in P1 |
 | Types | S1 `tsc --noEmit` (`allowJs` + `checkJs`) | enforced | `tsconfig.json`; pre-commit index snapshot `npm run typecheck`; CI `S1: Types` required by `Z1: Gate` |
 | Complete L1 | 95% four-metric coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | enforced | Installed pre-commit exports `git checkout-index` to a temp dir and runs `npm run typecheck`, `npm run test:coverage`, and `npm run lint` (`--error-on-warnings`). Vitest sets `allowOnly: false`, `passWithNoTests: false`, and `RequireSelectedTests`. Target wall time <30s on ordinary code changes |
-| Deps / secrets | G1 gitleaks + G2 osv-scanner | enforced | `quality-slots.yml` with no advisory ignores; lockfiles `bun.lock,package-lock.json`. No pre-push hook |
+| Deps / secrets | G1 gitleaks + G2 osv-scanner | enforced | `pipeline.yml` -> `quality-slots.yml` (`base-ci` `v2026.24`, `quality / Z1: Gate` required on `main`); lockfiles `bun.lock,package-lock.json`. No pre-push hook |
 | Test isolation | D1 no prod network as fixture | planned | mocks isolate unit tests; no dedicated loopback server or marker |
 | Bundler output | n/a | N/A | no bundler |
 | Docs | README if CLI flags change | manual | human review |
