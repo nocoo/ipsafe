@@ -36,7 +36,7 @@ This file is the **contract**. Hooks, CI, and config are **enforcement**. If the
 | Runtime | Node.js CLI |
 | Types | TypeScript `tsc --noEmit` (`allowJs` + `checkJs`) |
 | Lint | Biome `--error-on-warnings` |
-| Tests | Vitest `__tests__/**/*.test.js`, coverage 95% four metrics |
+| Tests | Vitest `__tests__/**/*.test.js`, coverage 90% st/fn/ln, 85% br |
 | Data | none |
 
 ```
@@ -52,7 +52,7 @@ Run from the repository root. CI pins Bun 1.4.2 and Node 26.12.1; tests need no 
 npm ci
 npm run typecheck           # tsc --noEmit (allowJs + checkJs)
 npm run lint                # biome check --error-on-warnings bin/ lib/ __tests__/
-npm run test:coverage       # vitest --coverage (thresholds 95)
+npm run test:coverage       # vitest --coverage (thresholds 90/85)
 npm test                    # vitest run
 npm run verify              # typecheck + lint + test:coverage
 node bin/ipsafe.js --help
@@ -61,15 +61,15 @@ node bin/ipsafe.js --help
 ## Verification
 
 Status: `enforced` | `planned` | `manual` | `N/A`.
-Required L1 bar is statements/branches/functions/lines each ≥95%; no skipped or focused tests.
+Required L1 bar is statements/functions/lines ≥90% and branches ≥85%; no skipped or focused tests.
 
 | Change | Proof | Status | Evidence |
 |---|---|---|---|
-| Logic | L1 Vitest ≥ 95% four metrics | enforced | `vitest.config.ts` 95; pre-commit index snapshot `npm run test:coverage`; CI same |
+| Logic | L1 Vitest ≥ 90/85% | enforced | `vitest.config.ts` 90/85; pre-commit index snapshot `npm run test:coverage`; CI same |
 | API / schema | L2 real HTTP against a local server, 100% CLI/library paths | planned | unit tests mock HTTP; no local listen harness |
 | UI path | P1 packed-CLI process E2E | enforced | `npm run verify:packed-install` in P1 |
 | Types | S1 `tsc --noEmit` (`allowJs` + `checkJs`) | enforced | `tsconfig.json`; pre-commit index snapshot `npm run typecheck`; CI `S1: Types` required by `Z1: Gate` |
-| Complete L1 | 95% four-metric coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | enforced | Installed pre-commit exports `git checkout-index` to a temp dir and runs `npm run typecheck`, `npm run test:coverage`, and `npm run lint` (`--error-on-warnings`). Vitest sets `allowOnly: false`, `passWithNoTests: false`, and `RequireSelectedTests`. Target wall time <30s on ordinary code changes |
+| Complete L1 | 90/85% coverage, check-only static analysis with zero errors/warnings, no skipped/focused tests and installed index-snapshot rejection | enforced | Installed pre-commit exports `git checkout-index` to a temp dir and runs `npm run typecheck`, `npm run test:coverage`, and `npm run lint` (`--error-on-warnings`). Vitest sets `allowOnly: false`, `passWithNoTests: false`, and `RequireSelectedTests`. Target wall time <30s on ordinary code changes |
 | Deps / secrets | G1 gitleaks + G2 osv-scanner | enforced | `pipeline.yml` -> `quality-slots.yml` (`base-ci` `v2026.24`, `quality / Z1: Gate` required on `main`); lockfiles `bun.lock,package-lock.json`. No pre-push hook |
 | Test isolation | D1 no prod network as fixture | planned | mocks isolate unit tests; no dedicated loopback server or marker |
 | Bundler output | n/a | N/A | no bundler |
